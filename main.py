@@ -1,6 +1,9 @@
+import config
+
+
 def startup():
     print("=" * 50)
-    print("        SURGE-SNIPER v0.1")
+    print(f"        {config.BOT_NAME} v{config.VERSION}")
     print("      AI TRADING COMMAND CENTER")
     print("=" * 50)
 
@@ -14,7 +17,11 @@ def startup():
 
     print("\n" + "=" * 50)
 
-    print("WELCOME, COMMANDER! 🫡")
+    print(f"MODE : {config.MODE}")
+    print(f"BROKER : {config.BROKER}")
+    print(f"RISK : {config.RISK_PERCENT}%")
+
+    print("\nWELCOME, COMMANDER! 🫡")
     print("MISSION STATUS : ACTIVE")
     print("Initializing future systems...")
     print("=" * 50)
