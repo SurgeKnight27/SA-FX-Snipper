@@ -1,40 +1,41 @@
 # ============================================
 # Surge-Sniper
-# Technical Indicators v1.0
+# Market Hunter Indicators v1.0
 # ============================================
+
 
 class Indicators:
 
     def __init__(self):
         pass
 
-    def ema(self, prices):
-        if not prices:
+    def ema(self, prices, period=10):
+        if len(prices) < period:
             return None
 
-        return sum(prices) / len(prices)
+        prices = prices[-period:]
 
-    def rsi(self, prices):
-        if len(prices) < 14:
+        return sum(prices) / period
+
+
+    def rsi(self, prices, period=14):
+        if len(prices) <= period:
             return None
 
-        gains = []
-        losses = []
+        gains = 0
+        losses = 0
 
-        for i in range(1, len(prices)):
-            change = prices[i] - prices[i - 1]
+        for i in range(1, period + 1):
+            change = prices[-i] - prices[-i-1]
 
             if change > 0:
-                gains.append(change)
+                gains += change
             else:
-                losses.append(abs(change))
+                losses += abs(change)
 
-        avg_gain = sum(gains) / max(len(gains), 1)
-        avg_loss = sum(losses) / max(len(losses), 1)
-
-        if avg_loss == 0:
+        if losses == 0:
             return 100
 
-        rs = avg_gain / avg_loss
+        rs = gains / losses
 
-        return 100 - (100 / (1 + rs))
+        return round(100 - (100 / (1 + rs)), 2)
