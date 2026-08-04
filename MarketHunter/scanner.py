@@ -4,17 +4,14 @@
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
-
-
 class MarketHunter:
 
     def __init__(self):
         self.symbol = "XAUUSD"
         self.timeframe = "M15"
         self.price = None
+        self.price_history = []
         self.signal_engine = SignalEngine()
-
-    def load(self):
         print("📈 Loading Market Hunter...")
         print("✅ Market Hunter Loaded.")
 
