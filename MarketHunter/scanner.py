@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v1.0
+# Market Hunter Scanner v2.0
 # ============================================
 
 class MarketHunter:
@@ -22,15 +22,46 @@ class MarketHunter:
         self.price = price
         print(f"📊 Market Hunter Price Update: {price}")
 
-    def scan(self):
-        print("🔍 Scanning market...")
-        return "NO SIGNAL"
-
     def scan_market(self):
         print("🔍 Market Hunter scanning market...")
         return self.scan()
 
-    def status(self):
-        return "ONLINE"
-    def status(self):
-        return "ONLINE"
+    def scan(self):
+        print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
+
+        trend = "SIDEWAYS"
+
+        if self.price is not None:
+            if self.price > 3350:
+                trend = "BULLISH"
+            elif self.price < 3300:
+                trend = "BEARISH"
+
+        signal = "HOLD"
+
+        if trend == "BULLISH":
+            signal = "BUY"
+        elif trend == "BEARISH":
+            signal = "SELL"
+        confidence = 50
+
+        if trend == "BULLISH":
+            confidence += 25
+
+        if signal == "BUY":
+            confidence += 15
+
+        if self.price is not None and self.price > 3370:
+            confidence += 10
+
+        confidence = min(confidence, 100)
+
+        print(f"📈 Trend      : {trend}")
+        print(f"🎯 Signal     : {signal}")
+        print(f"📊 Confidence : {confidence}%")
+
+        return {
+            "trend": trend,
+            "signal": signal,
+            "confidence": confidence,
+        }
