@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v3.4.3
+# Market Hunter Scanner v3.5.2
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
@@ -31,6 +31,7 @@ class MarketHunter:
 
     def update_price(self, price):
         self.price = price
+
         self.price_history.append(price)
 
         if len(self.price_history) > 100:
@@ -44,26 +45,30 @@ class MarketHunter:
 
     def scan(self):
 
-        # Build a complete history if we don't have enough samples yet
+        # Build initial history
         if len(self.price_history) < 15:
             self.price_history = self.data_stream.get_prices().copy()
 
-            if self.price is not None:
-                self.price_history[-1] = self.price
-            else:
-                self.price = self.price_history[-1]
+        # Simulate arrival of the next market price
+        new_price = self.data_stream.next_price()
+        self.price = new_price
+
+        self.price_history.append(new_price)
+
+        if len(self.price_history) > 100:
+            self.price_history.pop(0)
 
         print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
 
         ema = self.indicators.ema(self.price_history)
         rsi = self.indicators.rsi(self.price_history)
 
-        print(f"📊 EMA        : {ema}")
+        print(f"📊 EMA        : {round(ema,2) if ema is not None else None}")
         print(f"⚡ RSI        : {rsi}")
 
         trend = "SIDEWAYS"
 
-        if ema is not None and self.price is not None:
+        if ema is not None:
             if self.price > ema:
                 trend = "BULLISH"
             elif self.price < ema:
@@ -96,6 +101,7 @@ class MarketHunter:
             "ema": ema,
             "rsi": rsi,
             "samples": len(self.price_history),
+            "price": self.price,
         }
 
     def status(self):

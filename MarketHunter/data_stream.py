@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Data Stream v1.0
+# Market Data Stream v2.0
 # ============================================
 
 class DataStream:
@@ -24,5 +24,18 @@ class DataStream:
             3381.2,
         ]
 
+        self.index = 0
+
     def get_prices(self):
-        return self.prices
+        return self.prices.copy()
+
+    def next_price(self):
+
+        price = self.prices[self.index]
+
+        self.index += 1
+
+        if self.index >= len(self.prices):
+            self.index = 0
+
+        return price
