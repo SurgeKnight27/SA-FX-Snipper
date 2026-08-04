@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v3.5.2
+# Market Hunter Scanner v3.6.2
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
@@ -45,33 +45,31 @@ class MarketHunter:
 
     def scan(self):
 
-        # Build initial history
-        if len(self.price_history) < 15:
+        if len(self.price_history) < 20:
             self.price_history = self.data_stream.get_prices().copy()
 
-        # Simulate arrival of the next market price
         new_price = self.data_stream.next_price()
         self.price = new_price
-
         self.price_history.append(new_price)
 
         if len(self.price_history) > 100:
             self.price_history.pop(0)
 
-        print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
-
-        ema = self.indicators.ema(self.price_history)
+        ema_fast = self.indicators.ema_fast(self.price_history)
+        ema_slow = self.indicators.ema_slow(self.price_history)
         rsi = self.indicators.rsi(self.price_history)
 
-        print(f"📊 EMA        : {round(ema,2) if ema is not None else None}")
-        print(f"⚡ RSI        : {rsi}")
+        print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
+        print(f"⚡ EMA(10)    : {ema_fast}")
+        print(f"📈 EMA(20)    : {ema_slow}")
+        print(f"📊 RSI(14)    : {rsi}")
 
         trend = "SIDEWAYS"
 
-        if ema is not None:
-            if self.price > ema:
+        if ema_fast is not None and ema_slow is not None:
+            if ema_fast > ema_slow:
                 trend = "BULLISH"
-            elif self.price < ema:
+            elif ema_fast < ema_slow:
                 trend = "BEARISH"
 
         confidence = 50
@@ -80,9 +78,9 @@ class MarketHunter:
             confidence += 20
 
         if rsi is not None:
-            if rsi > 55:
+            if rsi > 60:
                 confidence += 15
-            elif rsi < 45:
+            elif rsi < 40:
                 confidence += 15
 
         confidence = min(confidence, 100)
@@ -98,7 +96,8 @@ class MarketHunter:
             "trend": trend,
             "signal": signal,
             "confidence": confidence,
-            "ema": ema,
+            "ema_fast": ema_fast,
+            "ema_slow": ema_slow,
             "rsi": rsi,
             "samples": len(self.price_history),
             "price": self.price,
