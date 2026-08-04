@@ -1,10 +1,11 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v3.3.2
+# Market Hunter Scanner v3.4.3
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
 from MarketHunter.indicators import Indicators
+from MarketHunter.data_stream import DataStream
 
 
 class MarketHunter:
@@ -12,10 +13,13 @@ class MarketHunter:
     def __init__(self):
         self.symbol = "XAUUSD"
         self.timeframe = "M15"
+
         self.price = None
         self.price_history = []
+
         self.signal_engine = SignalEngine()
         self.indicators = Indicators()
+        self.data_stream = DataStream()
 
     def load(self):
         print("📈 Loading Market Hunter...")
@@ -27,7 +31,6 @@ class MarketHunter:
 
     def update_price(self, price):
         self.price = price
-
         self.price_history.append(price)
 
         if len(self.price_history) > 100:
@@ -40,6 +43,16 @@ class MarketHunter:
         return self.scan()
 
     def scan(self):
+
+        # Build a complete history if we don't have enough samples yet
+        if len(self.price_history) < 15:
+            self.price_history = self.data_stream.get_prices().copy()
+
+            if self.price is not None:
+                self.price_history[-1] = self.price
+            else:
+                self.price = self.price_history[-1]
+
         print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
 
         ema = self.indicators.ema(self.price_history)
@@ -50,29 +63,24 @@ class MarketHunter:
 
         trend = "SIDEWAYS"
 
-        if self.price is not None:
-            if self.price > 3350:
+        if ema is not None and self.price is not None:
+            if self.price > ema:
                 trend = "BULLISH"
-            elif self.price < 3300:
+            elif self.price < ema:
                 trend = "BEARISH"
 
         confidence = 50
 
-        if trend == "BULLISH":
-            confidence += 25
-        elif trend == "BEARISH":
-            confidence += 25
+        if trend != "SIDEWAYS":
+            confidence += 20
 
         if rsi is not None:
-            if rsi > 50:
-                confidence += 10
-            elif rsi < 50:
-                confidence -= 10
+            if rsi > 55:
+                confidence += 15
+            elif rsi < 45:
+                confidence += 15
 
-        if self.price is not None and self.price > 3370:
-            confidence += 10
-
-        confidence = max(0, min(confidence, 100))
+        confidence = min(confidence, 100)
 
         signal = self.signal_engine.generate(trend, confidence)
 
