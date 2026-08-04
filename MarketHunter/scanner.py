@@ -1,9 +1,11 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v2.1
+# Market Hunter Scanner v3.2
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
+
+
 class MarketHunter:
 
     def __init__(self):
@@ -12,6 +14,8 @@ class MarketHunter:
         self.price = None
         self.price_history = []
         self.signal_engine = SignalEngine()
+
+    def load(self):
         print("📈 Loading Market Hunter...")
         print("✅ Market Hunter Loaded.")
 
@@ -21,6 +25,12 @@ class MarketHunter:
 
     def update_price(self, price):
         self.price = price
+
+        self.price_history.append(price)
+
+        if len(self.price_history) > 100:
+            self.price_history.pop(0)
+
         print(f"📊 Market Hunter Price Update: {price}")
 
     def scan_market(self):
@@ -55,11 +65,13 @@ class MarketHunter:
         print(f"📈 Trend      : {trend}")
         print(f"🎯 Signal     : {signal}")
         print(f"📊 Confidence : {confidence}%")
+        print(f"📚 Price Samples : {len(self.price_history)}")
 
         return {
             "trend": trend,
             "signal": signal,
             "confidence": confidence,
+            "samples": len(self.price_history),
         }
 
     def status(self):
