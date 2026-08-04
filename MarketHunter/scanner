@@ -17,20 +17,8 @@ class MarketHunter:
     def set_market(self, symbol, timeframe):
         self.symbol = symbol
         self.timeframe = timeframe
-
-    def update_price(self, price):
-        self.price = price
-        print(f"📊 Market Hunter Price Update: {price}")
-
-    def scan(self):
+        print(f"📈 Market set: {self.symbol} | {self.timeframe}")
+   
+ def scan(self):
         print("🔍 Scanning market...")
         return "NO SIGNAL"
-
-    def scan_market(self):
-        print("🔍 Market Hunter scanning market...")
-        return self.scan()
-
-    def status(self):
-        return "ONLINE"
-    def status(self):
-        return "ONLINE"

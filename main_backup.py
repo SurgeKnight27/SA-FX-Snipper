@@ -1,20 +1,7 @@
 import config
-from AI.engine import AIEngine
-from MarketHunter.scanner import MarketHunter
-from RiskCommander.risk import RiskCommander
-from Brokers.broker_manager_v2 import BrokerManager
 
 
 def startup():
-    ai = AIEngine()
-    hunter = MarketHunter()
-    risk = RiskCommander()
-    broker = BrokerManager()
-
-    broker.select_broker("Exness")
-    broker.connect()
-    price = broker.get_price("XAUUSD")
-
     print("=" * 50)
     print(f"        {config.BOT_NAME} v{config.VERSION}")
     print("      AI TRADING COMMAND CENTER")
@@ -28,11 +15,8 @@ def startup():
     print("🌍 Broker Manager...........READY")
     print("🎨 3D Dashboard............READY")
 
-    hunter.set_market("XAUUSD", "M15")
-    hunter.update_price(price)
-    hunter.scan_market()
-
     print("\n" + "=" * 50)
+
     print(f"MODE : {config.MODE}")
     print(f"BROKER : {config.BROKER}")
     print(f"RISK : {config.RISK_PERCENT}%")

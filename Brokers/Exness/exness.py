@@ -19,5 +19,18 @@ class ExnessBroker:
         else:
             print("❌ Not connected to Exness.")
 
+    def get_price(self, symbol):
+        """
+        Placeholder for retrieving the latest market price.
+        In a future version this will request live data
+        from Exness/MetaTrader.
+        """
+        if self.connected:
+            print(f"📈 Requesting latest price for {symbol}...")
+            return 3375.50
+        else:
+            print("❌ Not connected to Exness.")
+            return None
+
     def status(self):
         return "ONLINE" if self.connected else "OFFLINE"
