@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Exness Broker v1.1
+# Exness Broker v2.0
 # ============================================
 
 
@@ -8,10 +8,7 @@ class ExnessBroker:
 
     def __init__(self):
 
-        self.name = "Exness"
         self.connected = False
-        self.balance = 1000.00
-
 
     def connect(self):
 
@@ -21,33 +18,17 @@ class ExnessBroker:
 
         print("✅ Connected to Exness")
 
+        return True
 
     def disconnect(self):
 
-        print("🔌 Disconnecting from Exness...")
-
-        self.connected = False
-
-        print("✅ Disconnected")
-
-
-    def get_account(self):
-
         if self.connected:
 
-            print("📊 Retrieving Exness account information...")
+            print("🔌 Disconnecting from Exness...")
 
-            return {
-                "balance": self.balance,
-                "currency": "USD"
-            }
+            self.connected = False
 
-        else:
-
-            print("❌ Not connected to Exness.")
-
-            return None
-
+            print("✅ Disconnected")
 
     def get_price(self, symbol):
 
@@ -57,12 +38,9 @@ class ExnessBroker:
 
             return 3375.50
 
-        else:
+        print("❌ Not connected to Exness.")
 
-            print("❌ Not connected to Exness.")
-
-            return None
-
+        return None
 
     def status(self):
 

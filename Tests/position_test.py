@@ -1,7 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Position Management Test v1.1
-# DEMO TP/SL Simulation
+# Position Management Test v2.0
 # ============================================
 
 import sys
@@ -18,6 +17,7 @@ sys.path.append(
 from Brokers.Exness.executor import ExnessExecutor
 from Monitoring.position_monitor import PositionMonitor
 from Logs.trade_history import TradeHistory
+from Logs.performance_report import PerformanceReport
 
 
 def run_test():
@@ -25,8 +25,9 @@ def run_test():
     print("\n🚀 POSITION MANAGEMENT TEST")
     print("=" * 50)
 
-    executor = ExnessExecutor()
     history = TradeHistory()
+
+    executor = ExnessExecutor()
 
     monitor = PositionMonitor(
         executor=executor,
@@ -70,14 +71,13 @@ def run_test():
 
     monitor.check_position(3365)
 
-    print("\n📚 TRADE HISTORY")
-    print("=" * 50)
+    history.show_history()
 
-    if hasattr(history, "show_history"):
-        history.show_history()
+    report = PerformanceReport(
+        history.trades
+    )
 
-    if hasattr(history, "performance_report"):
-        history.performance_report()
+    report.generate()
 
 
 if __name__ == "__main__":
