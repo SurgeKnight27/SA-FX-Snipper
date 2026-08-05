@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# AI Trading Command Center v3.7.3-alpha
+# AI Trading Command Center v3.8.0-alpha
 # ============================================
 
 import config
@@ -13,6 +13,7 @@ from Brokers.broker_manager_v2 import BrokerManager
 from Brokers.Exness.executor import ExnessExecutor
 
 from Logs.trade_logger import TradeLogger
+from Monitoring.position_monitor import PositionMonitor
 
 
 def startup():
@@ -23,6 +24,7 @@ def startup():
     broker = BrokerManager()
     executor = ExnessExecutor()
     logger = TradeLogger()
+    monitor = PositionMonitor()
 
     broker.select_broker("Exness")
     broker.connect()
@@ -42,6 +44,7 @@ def startup():
     print("🌍 Broker Manager...........READY")
     print("⚡ Trade Executor...........READY")
     print("📚 Trade Logger............READY")
+    print("📡 Position Monitor........READY")
     print("🎨 3D Dashboard............READY")
 
     hunter.set_market("XAUUSD", "M15")
@@ -77,18 +80,6 @@ def startup():
         )
 
         print("Trade Status  : APPROVED ✅")
-        print(f"Entry         : {targets['entry']}")
-        print(f"Stop Loss     : {targets['stop_loss']}")
-        print(f"Take Profit   : {targets['take_profit']}")
-        print(f"Risk Reward   : {targets['risk_reward']}")
-
-        print("\n------------------------------")
-        print("💰 RISK REPORT")
-        print("------------------------------")
-        print(f"Account Balance : ${risk_report['balance']}")
-        print(f"Risk %          : {risk_report['risk_percent']}%")
-        print(f"Risk Amount     : ${risk_report['risk_amount']}")
-        print(f"Lot Size        : {risk_report['lot_size']}")
 
         executor.execute_trade(
             signal,
@@ -97,6 +88,15 @@ def startup():
             risk_report["lot_size"],
             targets["stop_loss"],
             targets["take_profit"]
+        )
+
+        monitor.open_position(
+            "XAUUSD",
+            signal,
+            targets["entry"],
+            targets["stop_loss"],
+            targets["take_profit"],
+            risk_report["lot_size"]
         )
 
         logger.log_trade(
