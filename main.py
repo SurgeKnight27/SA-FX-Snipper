@@ -1,3 +1,8 @@
+# ============================================
+# Surge-Sniper
+# AI Trading Command Center v3.7.0-alpha
+# ============================================
+
 import config
 from AI.engine import AIEngine
 from MarketHunter.scanner import MarketHunter
@@ -6,6 +11,7 @@ from Brokers.broker_manager_v2 import BrokerManager
 
 
 def startup():
+
     ai = AIEngine()
     hunter = MarketHunter()
     risk = RiskCommander()
@@ -13,6 +19,7 @@ def startup():
 
     broker.select_broker("Exness")
     broker.connect()
+
     price = broker.get_price("XAUUSD")
 
     print("=" * 50)
@@ -30,9 +37,37 @@ def startup():
 
     hunter.set_market("XAUUSD", "M15")
     hunter.update_price(price)
-    hunter.scan_market()
 
-    print("\n" + "=" * 50)
+    signal_data = hunter.scan_market()
+
+    signal = signal_data["signal"]
+    confidence = signal_data["confidence"]
+
+    print("\n==================================================")
+    print("🛡️ RISK COMMANDER")
+    print("==================================================")
+
+    approved = risk.approve_trade(signal, confidence)
+
+    print(f"Signal        : {signal}")
+    print(f"Confidence    : {confidence}%")
+
+    if approved:
+
+        targets = risk.calculate_targets(price, signal)
+
+        print("Trade Status  : APPROVED ✅")
+        print(f"Entry         : {targets['entry']}")
+        print(f"Stop Loss     : {targets['stop_loss']}")
+        print(f"Take Profit   : {targets['take_profit']}")
+        print(f"Risk Reward   : {targets['risk_reward']}")
+
+    else:
+
+        print("Trade Status  : REJECTED ❌")
+
+
+    print("\n==================================================")
     print(f"MODE : {config.MODE}")
     print(f"BROKER : {config.BROKER}")
     print(f"RISK : {config.RISK_PERCENT}%")

@@ -31,7 +31,6 @@ class MarketHunter:
 
     def update_price(self, price):
         self.price = price
-
         self.price_history.append(price)
 
         if len(self.price_history) > 100:
@@ -67,7 +66,7 @@ class MarketHunter:
 
         trend = "SIDEWAYS"
 
-        if ema_fast is not None and ema_slow is not None:
+        if ema_fast and ema_slow:
             if ema_fast > ema_slow:
                 trend = "BULLISH"
             elif ema_fast < ema_slow:
@@ -78,9 +77,8 @@ class MarketHunter:
         if trend != "SIDEWAYS":
             confidence += 20
 
-        if rsi is not None:
-            if rsi > 60 or rsi < 40:
-                confidence += 15
+        if rsi is not None and (rsi > 60 or rsi < 40):
+            confidence += 15
 
         confidence = min(confidence, 100)
 
@@ -95,31 +93,28 @@ class MarketHunter:
         print("📊 DECISION ENGINE")
         print("==================================================")
 
-        if ema_fast is not None and ema_slow is not None:
-            ema_cross = "Bullish ✅" if ema_fast > ema_slow else "Bearish 🔻"
-        else:
-            ema_cross = "Waiting..."
-
-        print(f"EMA Cross     : {ema_cross}")
-
-        if rsi is not None:
-            if rsi < 30:
-                rsi_status = "Oversold ✅"
-            elif rsi > 70:
-                rsi_status = "Overbought 🔴"
-            else:
-                rsi_status = "Neutral 🟡"
-        else:
-            rsi_status = "Waiting..."
-
-        print(f"RSI Status    : {rsi_status}")
         print(f"Trend         : {trend}")
         print(f"Signal        : {signal}")
         print(f"Confidence    : {confidence}%")
 
         print("\n🧠 Reason:")
 
+        reasons = []
+
         if signal == "BUY":
-            print("📈 EMA fast above EMA slow")
-            print("🟢 Momentum supports buyers")
-           
+            reasons.append("📈 EMA fast above EMA slow")
+            reasons.append("🟢 Momentum supports buyers")
+
+        elif signal == "SELL":
+            reasons.append("📉 EMA fast below EMA slow")
+            reasons.append("🔴 Momentum supports sellers")
+
+        for reason in reasons:
+            print(reason)
+
+        return {
+            "signal": signal,
+            "confidence": confidence,
+            "trend": trend,
+            "price": self.price
+        }
