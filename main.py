@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# AI Trading Command Center v3.8.0-alpha
+# AI Trading Command Center v3.8.1-alpha
 # ============================================
 
 import config
@@ -24,7 +24,7 @@ def startup():
     broker = BrokerManager()
     executor = ExnessExecutor()
     logger = TradeLogger()
-    monitor = PositionMonitor()
+    monitor = PositionMonitor(executor)
 
     broker.select_broker("Exness")
     broker.connect()
@@ -112,6 +112,7 @@ def startup():
 
         print("Trade Status  : REJECTED ❌")
 
+
     print("\n==================================================")
     print(f"MODE : {config.MODE}")
     print(f"BROKER : {config.BROKER}")
@@ -121,6 +122,7 @@ def startup():
     print("MISSION STATUS : ACTIVE")
     print("Initializing future systems...")
     print("=" * 50)
+
 
 
 if __name__ == "__main__":
