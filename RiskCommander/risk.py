@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Risk Commander v1.0
+# Risk Commander v1.1
 # ============================================
 
 class RiskCommander:
@@ -13,18 +13,26 @@ class RiskCommander:
         return "ONLINE"
 
     def set_risk(self, risk):
+
         if risk <= self.max_risk:
             self.risk_percent = risk
             return True
 
         return False
 
+    def calculate_risk_amount(self, balance):
+
+        return round(
+            balance * (self.risk_percent / 100),
+            2
+        )
+
     def calculate_position(self, balance, stop_loss_points):
 
         if stop_loss_points <= 0:
             return 0
 
-        risk_amount = balance * (self.risk_percent / 100)
+        risk_amount = self.calculate_risk_amount(balance)
 
         lot_size = risk_amount / stop_loss_points
 
@@ -52,6 +60,22 @@ class RiskCommander:
             "stop_loss": stop_loss,
             "take_profit": take_profit,
             "risk_reward": "1:2"
+        }
+
+    def risk_report(self, balance, stop_loss_points):
+
+        risk_amount = self.calculate_risk_amount(balance)
+
+        lot_size = self.calculate_position(
+            balance,
+            stop_loss_points
+        )
+
+        return {
+            "balance": balance,
+            "risk_percent": self.risk_percent,
+            "risk_amount": risk_amount,
+            "lot_size": lot_size
         }
 
     def approve_trade(self, signal, confidence):
