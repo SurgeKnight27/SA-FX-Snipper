@@ -1,7 +1,16 @@
+# ============================================
 # Surge-Sniper Configuration
+# v3.7.0-alpha
+# ============================================
 
+# Bot Identity
 BOT_NAME = "Surge-Sniper"
-VERSION = "0.1"
+
+# System Version
+VERSION = "3.7.0-alpha"
+
+# Active Trading Broker
+BROKER = "Exness"
 
 # Trading Mode
 MODE = "DEMO"
@@ -9,10 +18,6 @@ MODE = "DEMO"
 # Risk Settings
 RISK_PERCENT = 1.0
 
-# Broker Settings
-BROKER = "Exness"
-
-# System Status
-AI_ENGINE = True
-MARKET_HUNTER = True
-RISK_COMMANDER = True
+# Market Settings
+SYMBOL = "XAUUSD"
+TIMEFRAME = "M15"

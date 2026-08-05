@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v3.6.2
+# Market Hunter Scanner v3.7.1
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
@@ -49,6 +49,7 @@ class MarketHunter:
             self.price_history = self.data_stream.get_prices().copy()
 
         new_price = self.data_stream.next_price()
+
         self.price = new_price
         self.price_history.append(new_price)
 
@@ -78,9 +79,7 @@ class MarketHunter:
             confidence += 20
 
         if rsi is not None:
-            if rsi > 60:
-                confidence += 15
-            elif rsi < 40:
+            if rsi > 60 or rsi < 40:
                 confidence += 15
 
         confidence = min(confidence, 100)
@@ -92,16 +91,35 @@ class MarketHunter:
         print(f"📊 Confidence : {confidence}%")
         print(f"📚 Price Samples : {len(self.price_history)}")
 
-        return {
-            "trend": trend,
-            "signal": signal,
-            "confidence": confidence,
-            "ema_fast": ema_fast,
-            "ema_slow": ema_slow,
-            "rsi": rsi,
-            "samples": len(self.price_history),
-            "price": self.price,
-        }
+        print("\n==================================================")
+        print("📊 DECISION ENGINE")
+        print("==================================================")
 
-    def status(self):
-        return "ONLINE"
+        if ema_fast is not None and ema_slow is not None:
+            ema_cross = "Bullish ✅" if ema_fast > ema_slow else "Bearish 🔻"
+        else:
+            ema_cross = "Waiting..."
+
+        print(f"EMA Cross     : {ema_cross}")
+
+        if rsi is not None:
+            if rsi < 30:
+                rsi_status = "Oversold ✅"
+            elif rsi > 70:
+                rsi_status = "Overbought 🔴"
+            else:
+                rsi_status = "Neutral 🟡"
+        else:
+            rsi_status = "Waiting..."
+
+        print(f"RSI Status    : {rsi_status}")
+        print(f"Trend         : {trend}")
+        print(f"Signal        : {signal}")
+        print(f"Confidence    : {confidence}%")
+
+        print("\n🧠 Reason:")
+
+        if signal == "BUY":
+            print("📈 EMA fast above EMA slow")
+            print("🟢 Momentum supports buyers")
+           
