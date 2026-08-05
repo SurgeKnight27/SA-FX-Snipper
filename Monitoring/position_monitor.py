@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Position Monitor v1.1
+# Position Monitor v1.2
 # ============================================
 
 
@@ -79,7 +79,7 @@ class PositionMonitor:
         print("📈 POSITION UPDATE")
         print("------------------------------")
         print(f"Current Price : {current_price}")
-        print(f"Floating P/L  : {round(profit,2)}")
+        print(f"Floating P/L  : {round(profit, 2)}")
 
 
 
@@ -88,7 +88,6 @@ class PositionMonitor:
 
 
         if self.position["direction"] == "BUY":
-
 
             if current_price >= self.position["take_profit"]:
 
@@ -103,7 +102,6 @@ class PositionMonitor:
 
         else:
 
-
             if current_price <= self.position["take_profit"]:
 
                 close_reason = "TP HIT"
@@ -112,7 +110,6 @@ class PositionMonitor:
             elif current_price >= self.position["stop_loss"]:
 
                 close_reason = "SL HIT"
-
 
 
 
@@ -127,7 +124,32 @@ class PositionMonitor:
 
             if self.executor:
 
+
                 print("⚡ Sending close command to Executor...")
+
+
+                trade_for_close = {
+
+                    "symbol": self.position["symbol"],
+                    "type": self.position["direction"],
+                    "entry": self.position["entry"],
+                    "lot": self.position["lot_size"],
+                    "stop_loss": self.position["stop_loss"],
+                    "take_profit": self.position["take_profit"]
+
+                }
+
+
+                closed_trade = self.executor.close_trade(
+                    trade_for_close,
+                    current_price
+                )
+
+
+                self.position["status"] = "CLOSED"
+
+
+                print("✅ Position closed successfully")
 
 
 
