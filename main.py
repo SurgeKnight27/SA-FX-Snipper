@@ -1,13 +1,18 @@
 # ============================================
 # Surge-Sniper
-# AI Trading Command Center v3.7.1-alpha
+# AI Trading Command Center v3.7.3-alpha
 # ============================================
 
 import config
+
 from AI.engine import AIEngine
 from MarketHunter.scanner import MarketHunter
 from RiskCommander.risk import RiskCommander
+
 from Brokers.broker_manager_v2 import BrokerManager
+from Brokers.Exness.executor import ExnessExecutor
+
+from Logs.trade_logger import TradeLogger
 
 
 def startup():
@@ -16,6 +21,8 @@ def startup():
     hunter = MarketHunter()
     risk = RiskCommander()
     broker = BrokerManager()
+    executor = ExnessExecutor()
+    logger = TradeLogger()
 
     broker.select_broker("Exness")
     broker.connect()
@@ -33,6 +40,8 @@ def startup():
     print("📈 Market Hunter............READY")
     print("🛡️ Risk Commander..........READY")
     print("🌍 Broker Manager...........READY")
+    print("⚡ Trade Executor...........READY")
+    print("📚 Trade Logger............READY")
     print("🎨 3D Dashboard............READY")
 
     hunter.set_market("XAUUSD", "M15")
@@ -57,6 +66,7 @@ def startup():
         targets = risk.calculate_targets(price, signal)
 
         balance = 1000
+
         stop_loss_points = abs(
             targets["entry"] - targets["stop_loss"]
         )
@@ -80,10 +90,27 @@ def startup():
         print(f"Risk Amount     : ${risk_report['risk_amount']}")
         print(f"Lot Size        : {risk_report['lot_size']}")
 
+        executor.execute_trade(
+            signal,
+            "XAUUSD",
+            targets["entry"],
+            risk_report["lot_size"],
+            targets["stop_loss"],
+            targets["take_profit"]
+        )
+
+        logger.log_trade(
+            "XAUUSD",
+            signal,
+            targets["entry"],
+            risk_report["lot_size"],
+            targets["stop_loss"],
+            targets["take_profit"]
+        )
+
     else:
 
         print("Trade Status  : REJECTED ❌")
-
 
     print("\n==================================================")
     print(f"MODE : {config.MODE}")
