@@ -1,16 +1,18 @@
 # ============================================
 # Surge-Sniper
-# Position Monitor v1.2
+# Position Monitor v1.3
+# Trade History Bridge
 # ============================================
 
 
 class PositionMonitor:
 
 
-    def __init__(self, executor=None):
+    def __init__(self, executor=None, history=None):
 
         self.position = None
         self.executor = executor
+        self.history = history
 
 
 
@@ -140,16 +142,31 @@ class PositionMonitor:
                 }
 
 
-                closed_trade = self.executor.close_trade(
+                self.executor.close_trade(
                     trade_for_close,
                     current_price
                 )
 
 
-                self.position["status"] = "CLOSED"
+            if self.history:
 
 
-                print("✅ Position closed successfully")
+                self.history.record_trade(
+
+                    self.position["symbol"],
+                    self.position["direction"],
+                    self.position["entry"],
+                    current_price,
+                    self.position["lot_size"],
+                    round(profit, 2)
+
+                )
+
+
+            self.position["status"] = "CLOSED"
+
+
+            print("✅ Position closed successfully")
 
 
 
