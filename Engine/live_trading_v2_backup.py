@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Live Trading Engine v1.3
+# Live Trading Engine v1.2
 # ============================================
 
 import os
@@ -15,7 +15,6 @@ sys.path.append(
 )
 
 from Brokers.broker_manager import BrokerManager
-from Brokers.Exness.executor import ExnessExecutor
 from MarketHunter.scanner import MarketHunter
 
 
@@ -25,7 +24,6 @@ class LiveTrading:
 
         self.broker = BrokerManager()
         self.scanner = MarketHunter()
-        self.executor = ExnessExecutor()
 
     def start(self):
 
@@ -45,31 +43,12 @@ class LiveTrading:
 
         self.scanner.update_price(price)
 
-        result = self.scanner.scan_market()
+        signal = self.scanner.scan_market()
 
         print("\n==================================================")
         print("🎯 MARKET ANALYSIS")
         print("==================================================")
-        print(f"Signal : {result}")
-
-        signal = result["signal"]
-
-        if signal in ["BUY", "SELL"]:
-
-            print("\n⚡ Executing DEMO trade...")
-
-            self.executor.execute_trade(
-                signal=signal,
-                symbol="XAUUSD",
-                entry=price,
-                lot_size=0.01,
-                stop_loss=price - 10 if signal == "BUY" else price + 10,
-                take_profit=price + 20 if signal == "BUY" else price - 20
-            )
-
-        else:
-
-            print("⏸ No trade executed.")
+        print(f"Signal : {signal}")
 
         self.broker.disconnect()
 
