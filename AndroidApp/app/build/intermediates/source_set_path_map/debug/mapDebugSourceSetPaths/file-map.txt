@@ -1,0 +1,7 @@
+com.surgesniper.app-pngs-0 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/build/generated/res/pngs/debug
+com.surgesniper.app-resValues-1 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/build/generated/res/resValues/debug
+com.surgesniper.app-packageDebugResources-2 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.surgesniper.app-packageDebugResources-3 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.surgesniper.app-debug-4 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.surgesniper.app-debug-5 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/src/debug/res
+com.surgesniper.app-main-6 /data/data/com.termux/files/home/Surge-Sniper/AndroidApp/app/src/main/res
