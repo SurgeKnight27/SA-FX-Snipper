@@ -1,0 +1,11 @@
+{
+    "app_name": "Surge-Sniper",
+    "version": "3.7.3",
+    "mode": "DEMO",
+    "dashboard": "http://127.0.0.1:5000",
+    "symbol": "XAUUSD",
+    "timeframe": "M15",
+    "broker": "Exness",
+    "status": "ONLINE",
+    "description": "AI-powered trading command center"
+}
