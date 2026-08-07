@@ -1,8 +1,10 @@
 # ============================================
 # Surge-Sniper
-# AI Trading Command Center v3.8.1-alpha
+# AI Trading Command Center v4.0
+# DEMO Trading Loop
 # ============================================
 
+import time
 import config
 
 from AI.engine import AIEngine
@@ -29,100 +31,106 @@ def startup():
     broker.select_broker("Exness")
     broker.connect()
 
-    price = broker.get_price("XAUUSD")
+    hunter.set_market("XAUUSD", "M15")
 
     print("=" * 50)
-    print(f"        {config.BOT_NAME} v{config.VERSION}")
+    print(f"        {config.BOT_NAME} v4.0")
     print("      AI TRADING COMMAND CENTER")
     print("=" * 50)
 
     print("\n🟢 System Status : ONLINE\n")
 
-    print("🧠 AI Engine.................READY")
-    print("📈 Market Hunter............READY")
-    print("🛡️ Risk Commander..........READY")
-    print("🌍 Broker Manager...........READY")
-    print("⚡ Trade Executor...........READY")
-    print("📚 Trade Logger............READY")
-    print("📡 Position Monitor........READY")
-    print("🎨 3D Dashboard............READY")
+    cycles = 5
 
-    hunter.set_market("XAUUSD", "M15")
-    hunter.update_price(price)
+    for cycle in range(1, cycles + 1):
 
-    signal_data = hunter.scan_market()
+        print("\n==================================================")
+        print(f"🔄 DEMO MARKET CYCLE {cycle}/{cycles}")
+        print("==================================================")
 
-    signal = signal_data["signal"]
-    confidence = signal_data["confidence"]
+        price = broker.get_price("XAUUSD")
+
+        if price is None:
+            print("❌ No market price")
+            continue
+
+        hunter.update_price(price)
+
+        signal_data = hunter.scan_market()
+
+        signal = signal_data["signal"]
+        confidence = signal_data["confidence"]
+
+        print("\n🛡️ RISK COMMANDER")
+        print(f"Signal     : {signal}")
+        print(f"Confidence : {confidence}%")
+
+        approved = risk.approve_trade(
+            signal,
+            confidence
+        )
+
+        if approved:
+
+            targets = risk.calculate_targets(
+                price,
+                signal
+            )
+
+            balance = 1000
+
+            stop_loss_points = abs(
+                targets["entry"] -
+                targets["stop_loss"]
+            )
+
+            risk_report = risk.risk_report(
+                balance,
+                stop_loss_points
+            )
+
+            trade = executor.execute_trade(
+                signal,
+                "XAUUSD",
+                targets["entry"],
+                risk_report["lot_size"],
+                targets["stop_loss"],
+                targets["take_profit"]
+            )
+
+            if trade:
+
+                monitor.open_position(
+                    "XAUUSD",
+                    signal,
+                    targets["entry"],
+                    targets["stop_loss"],
+                    targets["take_profit"],
+                    risk_report["lot_size"]
+                )
+
+                logger.log_trade(
+                    "XAUUSD",
+                    signal,
+                    targets["entry"],
+                    risk_report["lot_size"],
+                    targets["stop_loss"],
+                    targets["take_profit"]
+                )
+
+        else:
+
+            print("Trade Status : REJECTED ❌")
+
+
+        time.sleep(2)
+
 
     print("\n==================================================")
-    print("🛡️ RISK COMMANDER")
+    print("DEMO LOOP COMPLETE")
+    print("MODE :", config.MODE)
+    print("BROKER :", config.BROKER)
     print("==================================================")
-
-    approved = risk.approve_trade(signal, confidence)
-
-    print(f"Signal        : {signal}")
-    print(f"Confidence    : {confidence}%")
-
-    if approved:
-
-        targets = risk.calculate_targets(price, signal)
-
-        balance = 1000
-
-        stop_loss_points = abs(
-            targets["entry"] - targets["stop_loss"]
-        )
-
-        risk_report = risk.risk_report(
-            balance,
-            stop_loss_points
-        )
-
-        print("Trade Status  : APPROVED ✅")
-
-        executor.execute_trade(
-            signal,
-            "XAUUSD",
-            targets["entry"],
-            risk_report["lot_size"],
-            targets["stop_loss"],
-            targets["take_profit"]
-        )
-
-        monitor.open_position(
-            "XAUUSD",
-            signal,
-            targets["entry"],
-            targets["stop_loss"],
-            targets["take_profit"],
-            risk_report["lot_size"]
-        )
-
-        logger.log_trade(
-            "XAUUSD",
-            signal,
-            targets["entry"],
-            risk_report["lot_size"],
-            targets["stop_loss"],
-            targets["take_profit"]
-        )
-
-    else:
-
-        print("Trade Status  : REJECTED ❌")
-
-
-    print("\n==================================================")
-    print(f"MODE : {config.MODE}")
-    print(f"BROKER : {config.BROKER}")
-    print(f"RISK : {config.RISK_PERCENT}%")
-
-    print("\nWELCOME, COMMANDER! 🫡")
-    print("MISSION STATUS : ACTIVE")
-    print("Initializing future systems...")
-    print("=" * 50)
-
 
 
 if __name__ == "__main__":
