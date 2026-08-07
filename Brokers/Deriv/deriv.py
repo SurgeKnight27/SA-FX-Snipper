@@ -1,8 +1,5 @@
-# ============================================
-# Surge-Sniper
-# Deriv Broker v3.7.0-alpha
-# ============================================
-
+import websocket
+import json
 import os
 from dotenv import load_dotenv
 
@@ -10,56 +7,78 @@ load_dotenv()
 
 
 class DerivBroker:
-
     def __init__(self):
-        self.name = "Deriv"
-        self.connected = False
-
-        # Load credentials from .env
         self.app_id = os.getenv("DERIV_APP_ID")
-        self.api_token = os.getenv("DERIV_API_TOKEN")
-
-        # Temporary demo price
-        self.demo_price = 3375.50
+        self.token = os.getenv("DERIV_API_TOKEN")
+        self.ws = None
+        self.connected = False
 
     def connect(self):
-        print("🎲 Connecting to Deriv...")
+        try:
+            url = f"wss://ws.derivws.com/websockets/v3?app_id={self.app_id}"
 
-        if not self.app_id or not self.api_token:
-            print("❌ Deriv credentials not found in .env")
-            self.connected = False
-            return
+            print("🎲 Connecting to Deriv...")
+            print("Using App ID:", self.app_id)
 
-        print(f"🆔 App ID: {self.app_id}")
-        print("🔑 API Token: Loaded")
+            self.ws = websocket.create_connection(
+                url,
+                timeout=10
+            )
 
-        # Live authentication will be added next
-        self.connected = True
+            self.ws.send(json.dumps({
+                "authorize": self.token
+            }))
 
-        print("✅ Connected to Deriv")
+            response = json.loads(self.ws.recv())
 
-    def disconnect(self):
-        print("🔌 Disconnecting from Deriv...")
-        self.connected = False
-        print("✅ Disconnected")
+            if "authorize" in response:
+                self.connected = True
+                print("✅ Connected to Deriv")
+                return True
 
-    def set_credentials(self, app_id, api_token):
-        self.app_id = app_id
-        self.api_token = api_token
+            if "error" in response:
+                print("❌ Deriv API Error:", response["error"]["message"])
+                return False
+
+            print("❌ Authorization failed")
+            print(response)
+            return False
+
+        except Exception as e:
+            print("❌ Deriv connection failed:", e)
+            return False
 
     def get_account(self):
-        if self.connected:
-            print("📊 Retrieving Deriv account...")
-        else:
-            print("❌ Not connected to Deriv.")
-
-    def get_price(self, symbol):
         if not self.connected:
-            print("❌ Broker not connected.")
             return None
 
-        print(f"📡 Retrieving {symbol} price from Deriv...")
-        return self.demo_price
+        self.ws.send(json.dumps({
+            "balance": 1
+        }))
+
+        return json.loads(self.ws.recv())
+
+    def get_price(self, symbol="R_100"):
+        if not self.connected:
+            return None
+
+        self.ws.send(json.dumps({
+            "ticks": symbol
+        }))
+
+        data = json.loads(self.ws.recv())
+
+        if "tick" in data:
+            return data["tick"]["quote"]
+
+        return None
 
     def status(self):
         return "ONLINE" if self.connected else "OFFLINE"
+
+    def disconnect(self):
+        if self.ws:
+            self.ws.close()
+
+        self.connected = False
+        print("🔌 Deriv disconnected")

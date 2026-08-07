@@ -1,14 +1,16 @@
 # ============================================
 # Surge-Sniper
-# Exness Broker v2.0
+# Exness Broker v3.1
 # ============================================
+
+import time
 
 
 class ExnessBroker:
 
     def __init__(self):
-
         self.connected = False
+        self.name = "Exness"
 
     def connect(self):
 
@@ -20,27 +22,35 @@ class ExnessBroker:
 
         return True
 
+
     def disconnect(self):
 
-        if self.connected:
+        print("🔌 Disconnecting from Exness...")
 
-            print("🔌 Disconnecting from Exness...")
+        self.connected = False
 
-            self.connected = False
+        print("✅ Disconnected")
 
-            print("✅ Disconnected")
 
     def get_price(self, symbol):
 
-        if self.connected:
+        if not self.connected:
+            print("❌ Exness not connected")
+            return None
 
-            print(f"📈 Requesting latest price for {symbol}...")
+        print(f"📈 Requesting {symbol} price...")
 
-            return 3375.50
+        # Temporary market data simulation
+        prices = {
+            "XAUUSD": 3375.50,
+            "EURUSD": 1.1650,
+            "GBPUSD": 1.3420
+        }
 
-        print("❌ Not connected to Exness.")
+        price = prices.get(symbol, 0)
 
-        return None
+        return price
+
 
     def status(self):
 

@@ -1,44 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#000000"
-    android:padding="20dp">
+    android:background="#050505">
 
-    <ImageView
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:src="@drawable/logo"
-        android:contentDescription="Surge-Sniper Logo"/>
-
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SURGE-SNIPER ONLINE"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp"/>
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="15dp">
 
-    <Button
-        android:id="@+id/startEngineButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Engine"/>
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/logo"
+            android:contentDescription="Surge-Sniper Logo"/>
 
-    <Button
-        android:id="@+id/scanMarketButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Scan Market"/>
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🚀 SURGE-SNIPER\nSYSTEM READY"
+            android:textColor="#00FF99"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginTop="15dp"/>
 
-    <Button
-        android:id="@+id/settingsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"/>
+        <Button
+            android:id="@+id/startEngineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🚀 Start Engine"/>
 
-</LinearLayout>
+        <Button
+            android:id="@+id/scanMarketButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📡 Market Scan"/>
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚙ Settings"/>
+
+        <Button
+            android:id="@+id/dashboardButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Open Dashboard"/>
+
+    </LinearLayout>
+
+</ScrollView>
