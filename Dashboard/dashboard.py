@@ -6,8 +6,7 @@
 import sys
 import os
 
-from flask import Flask, render_template_string
-
+from flask import Flask, render_template_string, jsonify
 # Allow Dashboard to access project modules
 sys.path.append(
     os.path.abspath(
@@ -161,7 +160,12 @@ Awaiting Market Opportunity...
 
 </html>
 """
+@app.route("/api/status")
+def api_status():
 
+    status = get_status()
+
+    return jsonify(status)
 
 @app.route("/")
 def dashboard():

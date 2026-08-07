@@ -1,3 +1,16 @@
-.env
+# Android build files
+AndroidApp/.gradle/
+AndroidApp/app/build/
+*.apk
+*.aab
+
+# Gradle files
+.gradle/
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Termux temporary files
+*.log
+.env
