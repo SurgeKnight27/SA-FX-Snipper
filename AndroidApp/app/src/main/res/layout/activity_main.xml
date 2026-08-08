@@ -10,47 +10,86 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="15dp">
+        android:padding="20dp">
 
         <ImageView
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:src="@drawable/logo"
-            android:contentDescription="Surge-Sniper Logo"/>
+            android:contentDescription="Logo"/>
 
         <TextView
             android:id="@+id/statusText"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🚀 SURGE-SNIPER\nSYSTEM READY"
-            android:textColor="#00FF99"
-            android:textSize="16sp"
-            android:gravity="center"
+            android:text="🟢 Engine : ONLINE"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
             android:layout_marginTop="15dp"/>
+
+        <TextView
+            android:id="@+id/priceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price : --"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"/>
+
+        <TextView
+            android:id="@+id/trendText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trend : --"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"/>
+
+        <TextView
+            android:id="@+id/signalText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signal : --"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"/>
+
+        <TextView
+            android:id="@+id/confidenceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confidence : --"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"/>
 
         <Button
             android:id="@+id/startEngineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🚀 Start Engine"/>
+            android:text="🚀 START ENGINE"
+            android:layout_marginTop="20dp"/>
+
+        <Button
+            android:id="@+id/stopEngineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🛑 STOP ENGINE"/>
 
         <Button
             android:id="@+id/scanMarketButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📡 Market Scan"/>
-
-        <Button
-            android:id="@+id/settingsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="⚙ Settings"/>
+            android:text="📡 SCAN MARKET"/>
 
         <Button
             android:id="@+id/dashboardButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📊 Open Dashboard"/>
+            android:text="📊 DASHBOARD"/>
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚙ SETTINGS"/>
 
     </LinearLayout>
 
