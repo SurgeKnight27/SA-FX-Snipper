@@ -1,8 +1,10 @@
 # ============================================
 # Surge-Sniper
-# Exness Broker v4.1
-# DEMO Market Tick Stream
+# Exness Broker v6.0
+# LIVE XAUUSD MARKET DATA
 # ============================================
+
+import requests
 
 
 class ExnessBroker:
@@ -12,43 +14,35 @@ class ExnessBroker:
         self.connected = False
         self.name = "Exness"
 
-        self.tick_index = 0
+        self.price_url = "https://api.gold-api.com/price/XAU"
 
-        self.market_ticks = {
+        # ------------------------------------
+        # ACCOUNT DATA
+        # ------------------------------------
+        # Execution remains DEMO until the
+        # Exness MT5 bridge is connected.
+        #
+        # Market price below is LIVE XAU data.
+        # ------------------------------------
 
-            "XAUUSD": [
-                3375.50,
-                3375.80,
-                3376.20,
-                3375.90,
-                3377.10,
-                3377.80,
-                3378.40,
-                3377.60,
-                3379.20,
-                3380.10,
-                3379.70,
-                3381.00
-            ],
+        self.account_data = {
 
-            "EURUSD": [
-                1.1650,
-                1.1652,
-                1.1655,
-                1.1653,
-                1.1658
-            ],
-
-            "GBPUSD": [
-                1.3420,
-                1.3423,
-                1.3426,
-                1.3424,
-                1.3430
-            ]
+            "account_id": "--",
+            "currency": "USD",
+            "balance": 0.00,
+            "equity": 0.00,
+            "profit": 0.00,
+            "margin": 0.00,
+            "free_margin": 0.00,
+            "margin_level": 0.00,
+            "mode": "DEMO"
 
         }
 
+
+    # ========================================
+    # CONNECTION
+    # ========================================
 
     def connect(self):
 
@@ -56,10 +50,10 @@ class ExnessBroker:
 
         self.connected = True
 
-        print("✅ Connected to Exness")
+        print("✅ Exness broker layer ONLINE")
+        print("📡 LIVE XAUUSD market feed enabled")
 
         return True
-
 
 
     def disconnect(self):
@@ -71,6 +65,9 @@ class ExnessBroker:
         print("✅ Disconnected")
 
 
+    # ========================================
+    # LIVE MARKET PRICE
+    # ========================================
 
     def get_price(self, symbol):
 
@@ -81,32 +78,77 @@ class ExnessBroker:
             return None
 
 
-        print(f"📈 Requesting {symbol} price...")
+        if symbol != "XAUUSD":
 
-
-        if symbol not in self.market_ticks:
+            print(f"❌ Unsupported symbol: {symbol}")
 
             return None
 
 
-        prices = self.market_ticks[symbol]
+        try:
+
+            response = requests.get(
+                self.price_url,
+                timeout=15
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            if "price" not in data:
+
+                print("❌ Live XAU price unavailable")
+                print(data)
+
+                return None
 
 
-        price = prices[self.tick_index]
+            price = float(data["price"])
 
 
-        self.tick_index += 1
+            print("📡 LIVE XAUUSD")
+            print(f"💰 Price: {price}")
+            print(
+                f"🕒 Updated: "
+                f"{data.get('updatedAtReadable', 'unknown')}"
+            )
 
 
-        if self.tick_index >= len(prices):
-
-            self.tick_index = 0
+            return price
 
 
-        return price
+        except Exception as e:
+
+            print(f"❌ Live XAU price error: {e}")
+
+            return None
 
 
+    # ========================================
+    # ACCOUNT DATA
+    # ========================================
+
+    def get_account(self):
+
+        if not self.connected:
+
+            print("❌ Exness not connected")
+
+            return None
+
+
+        print("💰 Requesting Exness account data...")
+
+        return self.account_data.copy()
+
+
+    # ========================================
+    # BROKER STATUS
+    # ========================================
 
     def status(self):
 
         return "ONLINE" if self.connected else "OFFLINE"
+
+

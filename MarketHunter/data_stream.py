@@ -1,57 +1,95 @@
 # ============================================
 # Surge-Sniper
-# Market Data Stream v3.0
+# Market Data Stream v4.0
+# LIVE PRICE STREAM
 # ============================================
+
+import requests
+import time
+
 
 class DataStream:
 
     def __init__(self):
 
-        self.prices = [
-            3365.2,
-            3365.8,
-            3366.4,
-            3367.1,
-            3367.9,
-            3368.5,
-            3369.0,
-            3369.7,
-            3370.2,
-            3370.8,
-            3371.4,
-            3372.0,
-            3372.7,
-            3373.3,
-            3373.9,
-            3374.4,
-            3375.0,
-            3375.5,
-            3376.1,
-            3376.8,
-            3377.2,
-            3377.9,
-            3378.3,
-            3378.8,
-            3379.2,
-            3379.8,
-            3380.3,
-            3380.9,
-            3381.4,
-            3382.0
-        ]
+        self.symbol = "XAUUSD"
 
-        self.index = 0
+        self.current_price = None
+
+        self.last_update = 0
+
+        self.api_url = (
+            "https://api.twelvedata.com/price"
+            "?symbol=XAU/USD"
+            "&apikey=demo"
+        )
+
+
+    # ========================================
+    # LIVE PRICE
+    # ========================================
+
+    def get_live_price(self):
+
+        try:
+
+            response = requests.get(
+                self.api_url,
+                timeout=10
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            if "price" not in data:
+
+                print("❌ Live price unavailable")
+                print(data)
+
+                return None
+
+            price = float(data["price"])
+
+            self.current_price = price
+
+            self.last_update = time.time()
+
+            print(
+                f"📡 LIVE {self.symbol}: "
+                f"{price}"
+            )
+
+            return price
+
+        except Exception as e:
+
+            print(
+                f"❌ Live price error: {e}"
+            )
+
+            return None
+
+
+    # ========================================
+    # PRICE HISTORY
+    # ========================================
 
     def get_prices(self):
-        return self.prices.copy()
+
+        price = self.get_live_price()
+
+        if price is None:
+
+            return []
+
+        return [price]
+
+
+    # ========================================
+    # NEXT PRICE
+    # ========================================
 
     def next_price(self):
 
-        price = self.prices[self.index]
-
-        self.index += 1
-
-        if self.index >= len(self.prices):
-            self.index = 0
-
-        return price
+        return self.get_live_price()

@@ -1,16 +1,17 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v3.8.0
+# Market Hunter Scanner v4.0
+# LIVE MARKET HISTORY
 # ============================================
 
 from MarketHunter.signal_engine import SignalEngine
 from MarketHunter.indicators import Indicators
-from MarketHunter.data_stream import DataStream
 
 
 class MarketHunter:
 
     def __init__(self):
+
         self.symbol = "XAUUSD"
         self.timeframe = "M15"
 
@@ -19,74 +20,136 @@ class MarketHunter:
 
         self.signal_engine = SignalEngine()
         self.indicators = Indicators()
-        self.data_stream = DataStream()
+
+
+    # ========================================
+    # LOAD
+    # ========================================
 
     def load(self):
+
         print("📈 Loading Market Hunter...")
         print("✅ Market Hunter Loaded.")
 
+
+    # ========================================
+    # MARKET
+    # ========================================
+
     def set_market(self, symbol, timeframe):
+
         self.symbol = symbol
         self.timeframe = timeframe
+
+
+    # ========================================
+    # LIVE PRICE UPDATE
+    # ========================================
 
     def update_price(self, price):
 
         if price is None:
             return
 
-        self.price = price
-        self.price_history.append(price)
+        self.price = float(price)
+
+        self.price_history.append(self.price)
 
         if len(self.price_history) > 100:
             self.price_history.pop(0)
 
-        print(f"📊 Market Hunter Price Update: {price}")
+        print(
+            f"📊 Market Hunter Price Update: "
+            f"{self.price}"
+        )
+
+
+    # ========================================
+    # SCAN
+    # ========================================
 
     def scan_market(self):
+
         print("🔍 Market Hunter scanning market...")
+
         return self.scan()
+
 
     def scan(self):
 
-        # Only use DataStream if broker has not supplied prices yet
-        if len(self.price_history) < 20:
-
-            if self.price is None:
-                self.price_history = self.data_stream.get_prices().copy()
-
-            else:
-                while len(self.price_history) < 20:
-                    self.price_history.append(self.price)
+        print(
+            f"🔍 Analyzing "
+            f"{self.symbol} ({self.timeframe})..."
+        )
 
 
-        if self.price is None:
-            new_price = self.data_stream.next_price()
-        else:
-            new_price = self.price
+        sample_count = len(self.price_history)
 
 
-        self.price = new_price
-        self.price_history.append(new_price)
+        # ------------------------------------
+        # REQUIRE REAL MARKET HISTORY
+        # ------------------------------------
 
-        if len(self.price_history) > 100:
-            self.price_history.pop(0)
+        if sample_count < 20:
+
+            print(
+                f"⏳ Collecting live market history..."
+            )
+
+            print(
+                f"📚 Real Price Samples: "
+                f"{sample_count}/20"
+            )
+
+            return {
+
+                "signal": "HOLD",
+                "confidence": 0,
+                "trend": "WAITING",
+                "price": self.price,
+                "ready": False
+
+            }
 
 
-        ema_fast = self.indicators.ema_fast(self.price_history)
-        ema_slow = self.indicators.ema_slow(self.price_history)
-        rsi = self.indicators.rsi(self.price_history)
+        # ------------------------------------
+        # INDICATORS
+        # ------------------------------------
+
+        ema_fast = self.indicators.ema_fast(
+            self.price_history
+        )
+
+        ema_slow = self.indicators.ema_slow(
+            self.price_history
+        )
+
+        rsi = self.indicators.rsi(
+            self.price_history
+        )
 
 
-        print(f"🔍 Analyzing {self.symbol} ({self.timeframe})...")
-        print(f"⚡ EMA(10)    : {ema_fast}")
-        print(f"📈 EMA(20)    : {ema_slow}")
-        print(f"📊 RSI(14)    : {rsi}")
+        print(
+            f"⚡ EMA(10)    : {ema_fast}"
+        )
 
+        print(
+            f"📈 EMA(20)    : {ema_slow}"
+        )
+
+        print(
+            f"📊 RSI(14)    : {rsi}"
+        )
+
+
+        # ------------------------------------
+        # TREND
+        # ------------------------------------
 
         trend = "SIDEWAYS"
 
 
-        if ema_fast and ema_slow:
+        if ema_fast is not None and ema_slow is not None:
 
             if ema_fast > ema_slow:
                 trend = "BULLISH"
@@ -95,6 +158,10 @@ class MarketHunter:
                 trend = "BEARISH"
 
 
+        # ------------------------------------
+        # CONFIDENCE
+        # ------------------------------------
+
         confidence = 50
 
 
@@ -102,12 +169,18 @@ class MarketHunter:
             confidence += 20
 
 
-        if rsi is not None and (rsi > 60 or rsi < 40):
-            confidence += 15
+        if rsi is not None:
+
+            if rsi > 60 or rsi < 40:
+                confidence += 15
 
 
         confidence = min(confidence, 100)
 
+
+        # ------------------------------------
+        # SIGNAL
+        # ------------------------------------
 
         signal = self.signal_engine.generate(
             trend,
@@ -115,20 +188,49 @@ class MarketHunter:
         )
 
 
-        print(f"📈 Trend      : {trend}")
-        print(f"🎯 Signal     : {signal}")
-        print(f"📊 Confidence : {confidence}%")
-        print(f"📚 Price Samples : {len(self.price_history)}")
+        print(
+            f"📈 Trend      : {trend}"
+        )
+
+        print(
+            f"🎯 Signal     : {signal}"
+        )
+
+        print(
+            f"📊 Confidence : {confidence}%"
+        )
+
+        print(
+            f"📚 Price Samples : "
+            f"{len(self.price_history)}"
+        )
 
 
-        print("\n==================================================")
+        # ------------------------------------
+        # DECISION ENGINE
+        # ------------------------------------
+
+        print(
+            "\n=================================================="
+        )
+
         print("📊 DECISION ENGINE")
-        print("==================================================")
 
+        print(
+            "=================================================="
+        )
 
-        print(f"Trend         : {trend}")
-        print(f"Signal        : {signal}")
-        print(f"Confidence    : {confidence}%")
+        print(
+            f"Trend         : {trend}"
+        )
+
+        print(
+            f"Signal        : {signal}"
+        )
+
+        print(
+            f"Confidence    : {confidence}%"
+        )
 
 
         print("\n🧠 Reason:")
@@ -138,13 +240,32 @@ class MarketHunter:
 
 
         if signal == "BUY":
-            reasons.append("📈 EMA fast above EMA slow")
-            reasons.append("🟢 Momentum supports buyers")
+
+            reasons.append(
+                "📈 EMA fast above EMA slow"
+            )
+
+            reasons.append(
+                "🟢 Momentum supports buyers"
+            )
 
 
         elif signal == "SELL":
-            reasons.append("📉 EMA fast below EMA slow")
-            reasons.append("🔴 Momentum supports sellers")
+
+            reasons.append(
+                "📉 EMA fast below EMA slow"
+            )
+
+            reasons.append(
+                "🔴 Momentum supports sellers"
+            )
+
+
+        else:
+
+            reasons.append(
+                "⏸️ No confirmed trading setup"
+            )
 
 
         for reason in reasons:
@@ -152,8 +273,18 @@ class MarketHunter:
 
 
         return {
+
             "signal": signal,
             "confidence": confidence,
             "trend": trend,
-            "price": self.price
+            "price": self.price,
+            "ready": True
+
         }
+
+
+
+
+
+
+

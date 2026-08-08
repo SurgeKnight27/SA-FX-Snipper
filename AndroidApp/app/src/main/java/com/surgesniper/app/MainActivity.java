@@ -1,7 +1,6 @@
 package com.surgesniper.app;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -22,21 +21,15 @@ public class MainActivity extends Activity {
     private TextView signalText;
     private TextView confidenceText;
 
-    private Button startEngineButton;
-    private Button stopEngineButton;
-    private Button scanMarketButton;
-    private Button dashboardButton;
-    private Button settingsButton;
-
-    private boolean engineRunning = true;
+    private boolean engineRunning = false;
 
     private static final String API_URL =
-            "http://10.50.59.115:5000/api/status";
+            "http://10.48.81.190:5001/api/status";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         statusText = findViewById(R.id.statusText);
@@ -45,37 +38,65 @@ public class MainActivity extends Activity {
         signalText = findViewById(R.id.signalText);
         confidenceText = findViewById(R.id.confidenceText);
 
-        startEngineButton = findViewById(R.id.startEngineButton);
-        stopEngineButton = findViewById(R.id.stopEngineButton);
-        scanMarketButton = findViewById(R.id.scanMarketButton);
-        dashboardButton = findViewById(R.id.dashboardButton);
-        settingsButton = findViewById(R.id.settingsButton);
+        Button startEngineButton =
+                findViewById(R.id.startEngineButton);
+
+        Button stopEngineButton =
+                findViewById(R.id.stopEngineButton);
+
+        Button scanMarketButton =
+                findViewById(R.id.scanMarketButton);
+
+        Button dashboardButton =
+                findViewById(R.id.dashboardButton);
+
+        Button settingsButton =
+                findViewById(R.id.settingsButton);
+
+
+        // INITIAL STATE
+
+        statusText.setText("🔴 ENGINE : OFFLINE");
+
+        priceText.setText("Price : --");
+        trendText.setText("Trend : --");
+        signalText.setText("Signal : --");
+        confidenceText.setText("Confidence : --");
+
+
+        // START ENGINE
 
         startEngineButton.setOnClickListener(v -> {
 
             engineRunning = true;
-            statusText.setText("🟢 Engine : ONLINE");
+
+            statusText.setText("🟢 ENGINE : ONLINE");
 
             Toast.makeText(
                     MainActivity.this,
-                    "Engine Started",
+                    "Surge-Sniper Engine ONLINE",
                     Toast.LENGTH_SHORT
             ).show();
-
         });
+
+
+        // STOP ENGINE
 
         stopEngineButton.setOnClickListener(v -> {
 
             engineRunning = false;
-            statusText.setText("🔴 Engine : OFFLINE");
+
+            statusText.setText("🔴 ENGINE : OFFLINE");
 
             Toast.makeText(
                     MainActivity.this,
-                    "Engine Stopped",
+                    "Surge-Sniper Engine OFFLINE",
                     Toast.LENGTH_SHORT
             ).show();
-
         });
+
+
+        // SCAN MARKET
 
         scanMarketButton.setOnClickListener(v -> {
 
@@ -83,28 +104,47 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         MainActivity.this,
-                        "Start the Engine First",
+                        "START ENGINE FIRST",
                         Toast.LENGTH_SHORT
                 ).show();
 
                 return;
             }
 
-            fetchMarketData();
+            priceText.setText("Price : SCANNING...");
+            trendText.setText("Trend : ANALYZING...");
+            signalText.setText("Signal : ANALYZING...");
+            confidenceText.setText("Confidence : CALCULATING...");
 
+            fetchMarketData();
         });
+
+
+        // DASHBOARD
 
         dashboardButton.setOnClickListener(v -> {
 
-            Intent intent =
-                    new Intent(
-                            MainActivity.this,
-                            DashboardActivity.class
-                    );
+            try {
 
-            startActivity(intent);
+                startActivity(
+                        new android.content.Intent(
+                                MainActivity.this,
+                                DashboardActivity.class
+                        )
+                );
 
+            } catch (Exception e) {
+
+                Toast.makeText(
+                        MainActivity.this,
+                        "Dashboard unavailable",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
         });
+
+
+        // SETTINGS
 
         settingsButton.setOnClickListener(v -> {
 
@@ -113,21 +153,40 @@ public class MainActivity extends Activity {
                     "Settings Coming Soon",
                     Toast.LENGTH_SHORT
             ).show();
-
         });
-
     }
+
+
+    // ============================================
+    // LIVE MARKET DATA
+    // ============================================
 
     private void fetchMarketData() {
 
         new Thread(() -> {
 
+            HttpURLConnection connection = null;
+
             try {
 
                 URL url = new URL(API_URL);
 
-                HttpURLConnection connection =
+                connection =
                         (HttpURLConnection) url.openConnection();
+
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+
+                int responseCode =
+                        connection.getResponseCode();
+
+                if (responseCode != 200) {
+
+                    throw new Exception(
+                            "HTTP " + responseCode
+                    );
+                }
 
                 BufferedReader reader =
                         new BufferedReader(
@@ -144,55 +203,95 @@ public class MainActivity extends Activity {
                 while ((line = reader.readLine()) != null) {
 
                     response.append(line);
-
                 }
 
                 reader.close();
 
-                JSONObject json =
+                JSONObject data =
                         new JSONObject(response.toString());
+
+                String price =
+                        data.optString("price", "--");
+
+                String trend =
+                        data.optString("trend", "--");
+
+                String signal =
+                        data.optString("signal", "--");
+
+                String confidence =
+                        data.optString("confidence", "--");
+
+                String engine =
+                        data.optString("engine", "OFFLINE");
 
                 runOnUiThread(() -> {
 
+                    statusText.setText(
+                            "🟢 ENGINE : " + engine
+                    );
+
                     priceText.setText(
-                            "Price : " +
-                            json.optString("price", "--")
+                            "Price : " + price
                     );
 
                     trendText.setText(
-                            "Trend : " +
-                            json.optString("trend", "--")
+                            "Trend : " + trend
                     );
 
                     signalText.setText(
-                            "Signal : " +
-                            json.optString("signal", "--")
+                            "Signal : " + signal
                     );
 
                     confidenceText.setText(
-                            "Confidence : " +
-                            json.optString("confidence", "--") +
-                            "%"
+                            "Confidence : " + confidence + "%"
                     );
 
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Live Market Data Updated",
+                            Toast.LENGTH_SHORT
+                    ).show();
                 });
 
             } catch (Exception e) {
 
-                runOnUiThread(() ->
+                runOnUiThread(() -> {
 
-                        Toast.makeText(
-                                MainActivity.this,
-                                "Dashboard Offline",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                    statusText.setText(
+                            "🔴 ENGINE : OFFLINE"
+                    );
 
-                );
+                    priceText.setText(
+                            "Price : --"
+                    );
 
+                    trendText.setText(
+                            "Trend : --"
+                    );
+
+                    signalText.setText(
+                            "Signal : --"
+                    );
+
+                    confidenceText.setText(
+                            "Confidence : --"
+                    );
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Backend connection failed",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                });
+
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
             }
 
         }).start();
-
     }
-
 }

@@ -12,21 +12,15 @@
         android:gravity="center_horizontal"
         android:padding="20dp">
 
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/logo"
-            android:contentDescription="Logo"/>
-
         <TextView
             android:id="@+id/statusText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🟢 Engine : ONLINE"
+            android:text="ENGINE : ONLINE"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginTop="15dp"/>
+            android:layout_marginTop="30dp"/>
 
         <TextView
             android:id="@+id/priceText"
@@ -64,32 +58,32 @@
             android:id="@+id/startEngineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🚀 START ENGINE"
+            android:text="START ENGINE"
             android:layout_marginTop="20dp"/>
 
         <Button
             android:id="@+id/stopEngineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🛑 STOP ENGINE"/>
+            android:text="STOP ENGINE"/>
 
         <Button
             android:id="@+id/scanMarketButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📡 SCAN MARKET"/>
+            android:text="SCAN MARKET"/>
 
         <Button
             android:id="@+id/dashboardButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📊 DASHBOARD"/>
+            android:text="DASHBOARD"/>
 
         <Button
             android:id="@+id/settingsButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⚙ SETTINGS"/>
+            android:text="SETTINGS"/>
 
     </LinearLayout>
 

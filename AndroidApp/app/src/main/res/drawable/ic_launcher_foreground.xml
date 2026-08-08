@@ -1,10 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<?xml version="1.0" encoding="utf-8"?><vector xmlns:android="http://schemas.android.com/apk/res/android"
+android:width="108dp"
+android:height="108dp"
+android:viewportWidth="108"
+android:viewportHeight="108">
 
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/logo_foreground"/>
-    </item>
+<path
+    android:fillColor="#FFFFFF"
+    android:pathData="M54,14A40,40 0,1 0,54 94A40,40 0,1 0,54 14" />
 
-</layer-list>
+<path
+    android:fillColor="#000000"
+    android:pathData="M54,22A32,32 0,1 0,54 86A32,32 0,1 0,54 22" />
+
+<path
+    android:fillColor="#00FF9D"
+    android:pathData="M54,30L61,48L80,54L61,60L54,78L47,60L28,54L47,48Z" />
+
+</vector>
