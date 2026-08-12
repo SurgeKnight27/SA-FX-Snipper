@@ -14,3 +14,16 @@ __pycache__/
 # Termux temporary files
 *.log
 .env
+
+AndroidApp/build/
+
+# Backup / temporary development files
+*.backup*
+*.before_*
+AndroidApp_BACKUP_*/
+
+# Local development / downloaded API reference / market data
+Brokers/MetaApi/*.broken_get_account_backup
+MarketHunter/data/
+mt5api-openapi.json
+mt5api-reference.html

@@ -2,6 +2,7 @@ package com.surgesniper.app;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,20 +24,47 @@ public class MainActivity extends Activity {
 
     private boolean engineRunning = false;
 
+    private final Handler handler = new Handler();
+
     private static final String API_URL =
-            "http://10.48.81.190:5001/api/status";
+            "http://10.22.97.20:5000/api/status";
+
+    private final Runnable scanner = new Runnable() {
+
+        @Override
+        public void run() {
+
+            if (!engineRunning) {
+                return;
+            }
+
+            fetchMarketData();
+
+            handler.postDelayed(this, 2000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
 
-        statusText = findViewById(R.id.statusText);
-        priceText = findViewById(R.id.priceText);
-        trendText = findViewById(R.id.trendText);
-        signalText = findViewById(R.id.signalText);
-        confidenceText = findViewById(R.id.confidenceText);
+        statusText =
+                findViewById(R.id.statusText);
+
+        priceText =
+                findViewById(R.id.priceText);
+
+        trendText =
+                findViewById(R.id.trendText);
+
+        signalText =
+                findViewById(R.id.signalText);
+
+        confidenceText =
+                findViewById(R.id.confidenceText);
 
         Button startEngineButton =
                 findViewById(R.id.startEngineButton);
@@ -54,8 +82,6 @@ public class MainActivity extends Activity {
                 findViewById(R.id.settingsButton);
 
 
-        // INITIAL STATE
-
         statusText.setText("🔴 ENGINE : OFFLINE");
 
         priceText.setText("Price : --");
@@ -64,29 +90,54 @@ public class MainActivity extends Activity {
         confidenceText.setText("Confidence : --");
 
 
+        // =========================================
         // START ENGINE
+        // =========================================
 
         startEngineButton.setOnClickListener(v -> {
 
+            if (engineRunning) {
+
+                Toast.makeText(
+                        MainActivity.this,
+                        "Engine already running",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
+            }
+
             engineRunning = true;
 
-            statusText.setText("🟢 ENGINE : ONLINE");
+            statusText.setText(
+                    "🟢 ENGINE : ONLINE"
+            );
 
             Toast.makeText(
                     MainActivity.this,
                     "Surge-Sniper Engine ONLINE",
                     Toast.LENGTH_SHORT
             ).show();
+
+            // Start continuous scanning
+            handler.removeCallbacks(scanner);
+            handler.post(scanner);
         });
 
 
+        // =========================================
         // STOP ENGINE
+        // =========================================
 
         stopEngineButton.setOnClickListener(v -> {
 
             engineRunning = false;
 
-            statusText.setText("🔴 ENGINE : OFFLINE");
+            handler.removeCallbacks(scanner);
+
+            statusText.setText(
+                    "🔴 ENGINE : OFFLINE"
+            );
 
             Toast.makeText(
                     MainActivity.this,
@@ -96,7 +147,9 @@ public class MainActivity extends Activity {
         });
 
 
+        // =========================================
         // SCAN MARKET
+        // =========================================
 
         scanMarketButton.setOnClickListener(v -> {
 
@@ -111,16 +164,34 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            priceText.setText("Price : SCANNING...");
-            trendText.setText("Trend : ANALYZING...");
-            signalText.setText("Signal : ANALYZING...");
-            confidenceText.setText("Confidence : CALCULATING...");
+            priceText.setText(
+                    "Price : SCANNING..."
+            );
 
+            trendText.setText(
+                    "Trend : ANALYZING..."
+            );
+
+            signalText.setText(
+                    "Signal : ANALYZING..."
+            );
+
+            confidenceText.setText(
+                    "Confidence : CALCULATING..."
+            );
+
+            // Immediate scan
             fetchMarketData();
+
+            // Keep scanner alive
+            handler.removeCallbacks(scanner);
+            handler.postDelayed(scanner, 2000);
         });
 
 
+        // =========================================
         // DASHBOARD
+        // =========================================
 
         dashboardButton.setOnClickListener(v -> {
 
@@ -144,7 +215,9 @@ public class MainActivity extends Activity {
         });
 
 
+        // =========================================
         // SETTINGS
+        // =========================================
 
         settingsButton.setOnClickListener(v -> {
 
@@ -169,13 +242,17 @@ public class MainActivity extends Activity {
 
             try {
 
-                URL url = new URL(API_URL);
+                URL url =
+                        new URL(API_URL);
 
                 connection =
-                        (HttpURLConnection) url.openConnection();
+                        (HttpURLConnection)
+                                url.openConnection();
 
                 connection.setRequestMethod("GET");
+
                 connection.setConnectTimeout(5000);
+
                 connection.setReadTimeout(5000);
 
                 int responseCode =
@@ -208,28 +285,64 @@ public class MainActivity extends Activity {
                 reader.close();
 
                 JSONObject data =
-                        new JSONObject(response.toString());
+                        new JSONObject(
+                                response.toString()
+                        );
 
                 String price =
-                        data.optString("price", "--");
+                        data.optString(
+                                "price",
+                                "--"
+                        );
 
                 String trend =
-                        data.optString("trend", "--");
+                        data.optString(
+                                "trend",
+                                "--"
+                        );
 
                 String signal =
-                        data.optString("signal", "--");
+                        data.optString(
+                                "signal",
+                                "--"
+                        );
 
                 String confidence =
-                        data.optString("confidence", "--");
+                        data.optString(
+                                "confidence",
+                                "--"
+                        );
 
                 String engine =
-                        data.optString("engine", "OFFLINE");
+                        data.optString(
+                                "engine",
+                                "OFFLINE"
+                        );
+
+                String broker =
+                        data.optString(
+                                "broker",
+                                "MT5API"
+                        );
+
+                String feed =
+                        data.optString(
+                                "feed",
+                                "LIVE"
+                        );
 
                 runOnUiThread(() -> {
 
-                    statusText.setText(
-                            "🟢 ENGINE : " + engine
-                    );
+                    // IMPORTANT:
+                    // A failed/temporary backend response
+                    // must NOT automatically stop the engine.
+
+                    if (engineRunning) {
+
+                        statusText.setText(
+                                "🟢 ENGINE : ONLINE"
+                        );
+                    }
 
                     priceText.setText(
                             "Price : " + price
@@ -244,54 +357,52 @@ public class MainActivity extends Activity {
                     );
 
                     confidenceText.setText(
-                            "Confidence : " + confidence + "%"
+                            "Confidence : "
+                                    + confidence
+                                    + "%"
                     );
 
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Live Market Data Updated",
-                            Toast.LENGTH_SHORT
-                    ).show();
                 });
 
             } catch (Exception e) {
 
                 runOnUiThread(() -> {
 
-                    statusText.setText(
-                            "🔴 ENGINE : OFFLINE"
-                    );
+                    // DO NOT set engineRunning=false.
+                    // The scanner will retry automatically.
 
-                    priceText.setText(
-                            "Price : --"
-                    );
+                    if (engineRunning) {
 
-                    trendText.setText(
-                            "Trend : --"
-                    );
+                        statusText.setText(
+                                "🟡 ENGINE : RETRYING"
+                        );
+                    }
 
-                    signalText.setText(
-                            "Signal : --"
-                    );
-
-                    confidenceText.setText(
-                            "Confidence : --"
-                    );
-
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Backend connection failed",
-                            Toast.LENGTH_SHORT
-                    ).show();
                 });
 
             } finally {
 
                 if (connection != null) {
+
                     connection.disconnect();
                 }
             }
 
         }).start();
+    }
+
+
+    // ============================================
+    // CLEAN SHUTDOWN
+    // ============================================
+
+    @Override
+    protected void onDestroy() {
+
+        handler.removeCallbacks(scanner);
+
+        engineRunning = false;
+
+        super.onDestroy();
     }
 }
