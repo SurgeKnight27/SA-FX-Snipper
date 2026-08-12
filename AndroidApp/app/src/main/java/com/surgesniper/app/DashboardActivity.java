@@ -32,8 +32,12 @@ public class DashboardActivity extends AppCompatActivity {
     private final Handler handler = new Handler();
 
     /*
-     * Flask Dashboard runs on the same Android device.
-     * Use loopback instead of a changing LAN IP.
+     * ========================================
+     * LOCAL FLASK DASHBOARD
+     * ========================================
+     *
+     * Flask runs locally on the same Android
+     * device through Termux.
      */
     private static final String BASE_URL =
             "http://127.0.0.1:5000";
@@ -44,19 +48,55 @@ public class DashboardActivity extends AppCompatActivity {
     private static final String ACCOUNT_URL =
             BASE_URL + "/api/account";
 
-    private final Runnable updater = new Runnable() {
+    /*
+     * Dashboard refresh interval.
+     *
+     * Previous value:
+     * 2000 ms
+     *
+     * New value:
+     * 5000 ms
+     *
+     * This greatly reduces request frequency and
+     * CPU/network activity.
+     */
+    private static final long REFRESH_INTERVAL =
+            5000;
 
-        @Override
-        public void run() {
+    /*
+     * Prevent multiple dashboard requests from
+     * running at the same time.
+     */
+    private volatile boolean requestRunning =
+            false;
 
-            fetchDashboardData();
+    /*
+     * Only refresh while this Activity is visible.
+     */
+    private volatile boolean dashboardActive =
+            false;
 
-            handler.postDelayed(
-                    this,
-                    2000
-            );
-        }
-    };
+    private final Runnable updater =
+            new Runnable() {
+
+                @Override
+                public void run() {
+
+                    if (!dashboardActive) {
+                        return;
+                    }
+
+                    if (!requestRunning) {
+                        requestRunning = true;
+                        fetchDashboardData();
+                    }
+
+                    handler.postDelayed(
+                            this,
+                            REFRESH_INTERVAL
+                    );
+                }
+            };
 
     @Override
     protected void onCreate(
@@ -125,7 +165,7 @@ public class DashboardActivity extends AppCompatActivity {
                 );
 
         /*
-         * Initial UI state
+         * Initial UI state.
          */
 
         engineStatus.setText(
@@ -157,374 +197,422 @@ public class DashboardActivity extends AppCompatActivity {
         brokerStatus.setText(
                 "● Broker Connection   MT5API CONNECTING"
         );
+    }
 
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        /*
+         * Dashboard becomes active only when
+         * actually visible.
+         */
+        dashboardActive = true;
+
+        handler.removeCallbacks(updater);
+
+        /*
+         * Start one immediate refresh.
+         */
         handler.post(updater);
+    }
+
+    @Override
+    protected void onPause() {
+
+        /*
+         * Stop dashboard polling immediately when
+         * the Activity is no longer visible.
+         */
+        dashboardActive = false;
+
+        handler.removeCallbacks(updater);
+
+        super.onPause();
     }
 
     private void fetchDashboardData() {
 
-        new Thread(() -> {
+        new Thread(
+                () -> {
 
-            HttpURLConnection statusConnection =
-                    null;
+                    HttpURLConnection statusConnection =
+                            null;
 
-            HttpURLConnection accountConnection =
-                    null;
+                    HttpURLConnection accountConnection =
+                            null;
 
-            try {
+                    try {
 
-                /*
-                 * ========================================
-                 * STATUS API
-                 * ========================================
-                 */
+                        /*
+                         * ========================================
+                         * STATUS API
+                         * ========================================
+                         */
 
-                URL statusUrl =
-                        new URL(STATUS_URL);
+                        URL statusUrl =
+                                new URL(STATUS_URL);
 
-                statusConnection =
-                        (HttpURLConnection)
-                                statusUrl.openConnection();
+                        statusConnection =
+                                (HttpURLConnection)
+                                        statusUrl.openConnection();
 
-                statusConnection.setRequestMethod(
-                        "GET"
-                );
-
-                statusConnection.setConnectTimeout(
-                        5000
-                );
-
-                statusConnection.setReadTimeout(
-                        5000
-                );
-
-                int statusCode =
-                        statusConnection.getResponseCode();
-
-                if (statusCode != 200) {
-
-                    throw new Exception(
-                            "Status HTTP "
-                                    + statusCode
-                    );
-                }
-
-                BufferedReader statusReader =
-                        new BufferedReader(
-                                new InputStreamReader(
-                                        statusConnection
-                                                .getInputStream()
-                                )
+                        statusConnection.setRequestMethod(
+                                "GET"
                         );
 
-                StringBuilder statusResponse =
-                        new StringBuilder();
-
-                String line;
-
-                while (
-                        (line =
-                                statusReader.readLine())
-                                != null
-                ) {
-
-                    statusResponse.append(line);
-                }
-
-                statusReader.close();
-
-                JSONObject statusData =
-                        new JSONObject(
-                                statusResponse.toString()
+                        statusConnection.setConnectTimeout(
+                                3000
                         );
 
-                /*
-                 * ========================================
-                 * MARKET DATA
-                 * ========================================
-                 */
-
-                String engine =
-                        statusData.optString(
-                                "engine",
-                                "OFFLINE"
+                        statusConnection.setReadTimeout(
+                                3000
                         );
 
-                String broker =
-                        statusData.optString(
-                                "broker",
-                                "MT5API"
+                        int statusCode =
+                                statusConnection
+                                        .getResponseCode();
+
+                        if (statusCode != 200) {
+
+                            throw new Exception(
+                                    "Status HTTP "
+                                            + statusCode
+                            );
+                        }
+
+                        BufferedReader statusReader =
+                                new BufferedReader(
+                                        new InputStreamReader(
+                                                statusConnection
+                                                        .getInputStream()
+                                        )
+                                );
+
+                        StringBuilder statusResponse =
+                                new StringBuilder();
+
+                        String line;
+
+                        while (
+                                (line =
+                                        statusReader.readLine())
+                                        != null
+                        ) {
+
+                            statusResponse.append(line);
+                        }
+
+                        statusReader.close();
+
+                        JSONObject statusData =
+                                new JSONObject(
+                                        statusResponse.toString()
+                                );
+
+                        /*
+                         * ========================================
+                         * MARKET DATA
+                         * ========================================
+                         */
+
+                        String engine =
+                                statusData.optString(
+                                        "engine",
+                                        "OFFLINE"
+                                );
+
+                        String broker =
+                                statusData.optString(
+                                        "broker",
+                                        "MT5API"
+                                );
+
+                        String brokerState =
+                                statusData.optString(
+                                        "broker_status",
+                                        "OFFLINE"
+                                );
+
+                        String marketPrice =
+                                statusData.optString(
+                                        "price",
+                                        "--"
+                                );
+
+                        String marketTrend =
+                                statusData.optString(
+                                        "trend",
+                                        "--"
+                                );
+
+                        String marketSignal =
+                                statusData.optString(
+                                        "signal",
+                                        "--"
+                                );
+
+                        String aiConfidence =
+                                statusData.optString(
+                                        "confidence",
+                                        "0"
+                                );
+
+                        String ready =
+                                statusData.optString(
+                                        "ready",
+                                        "false"
+                                );
+
+                        /*
+                         * ========================================
+                         * ACCOUNT API
+                         * ========================================
+                         */
+
+                        URL accountUrl =
+                                new URL(ACCOUNT_URL);
+
+                        accountConnection =
+                                (HttpURLConnection)
+                                        accountUrl.openConnection();
+
+                        accountConnection.setRequestMethod(
+                                "GET"
                         );
 
-                String brokerState =
-                        statusData.optString(
-                                "broker_status",
-                                "OFFLINE"
+                        accountConnection.setConnectTimeout(
+                                3000
                         );
 
-                String marketPrice =
-                        statusData.optString(
-                                "price",
-                                "--"
+                        accountConnection.setReadTimeout(
+                                3000
                         );
 
-                String marketTrend =
-                        statusData.optString(
-                                "trend",
-                                "--"
-                        );
+                        int accountCode =
+                                accountConnection
+                                        .getResponseCode();
 
-                String marketSignal =
-                        statusData.optString(
-                                "signal",
-                                "--"
-                        );
+                        if (accountCode != 200) {
 
-                String aiConfidence =
-                        statusData.optString(
-                                "confidence",
-                                "0"
-                        );
+                            throw new Exception(
+                                    "Account HTTP "
+                                            + accountCode
+                            );
+                        }
 
-                String ready =
-                        statusData.optString(
-                                "ready",
-                                "false"
-                        );
+                        BufferedReader accountReader =
+                                new BufferedReader(
+                                        new InputStreamReader(
+                                                accountConnection
+                                                        .getInputStream()
+                                        )
+                                );
 
-                /*
-                 * ========================================
-                 * ACCOUNT API
-                 * ========================================
-                 */
+                        StringBuilder accountResponse =
+                                new StringBuilder();
 
-                URL accountUrl =
-                        new URL(ACCOUNT_URL);
+                        while (
+                                (line =
+                                        accountReader.readLine())
+                                        != null
+                        ) {
 
-                accountConnection =
-                        (HttpURLConnection)
-                                accountUrl.openConnection();
+                            accountResponse.append(line);
+                        }
 
-                accountConnection.setRequestMethod(
-                        "GET"
-                );
+                        accountReader.close();
 
-                accountConnection.setConnectTimeout(
-                        5000
-                );
+                        JSONObject accountData =
+                                new JSONObject(
+                                        accountResponse.toString()
+                                );
 
-                accountConnection.setReadTimeout(
-                        5000
-                );
+                        /*
+                         * ========================================
+                         * LIVE ACCOUNT VALUES
+                         * ========================================
+                         */
 
-                int accountCode =
-                        accountConnection
-                                .getResponseCode();
+                        double balanceValue =
+                                accountData.optDouble(
+                                        "balance",
+                                        0.0
+                                );
 
-                if (accountCode != 200) {
+                        double equityValue =
+                                accountData.optDouble(
+                                        "equity",
+                                        0.0
+                                );
 
-                    throw new Exception(
-                            "Account HTTP "
-                                    + accountCode
-                    );
-                }
+                        double profitValue =
+                                accountData.optDouble(
+                                        "profit",
+                                        0.0
+                                );
 
-                BufferedReader accountReader =
-                        new BufferedReader(
-                                new InputStreamReader(
-                                        accountConnection
-                                                .getInputStream()
-                        )
-                );
+                        String balanceText =
+                                String.format(
+                                        "$%.2f",
+                                        balanceValue
+                                );
 
-                StringBuilder accountResponse =
-                        new StringBuilder();
+                        String equityText =
+                                String.format(
+                                        "$%.2f",
+                                        equityValue
+                                );
 
-                while (
-                        (line =
-                                accountReader.readLine())
-                                != null
-                ) {
+                        String profitText =
+                                String.format(
+                                        "$%.2f",
+                                        profitValue
+                                );
 
-                    accountResponse.append(line);
-                }
+                        /*
+                         * ========================================
+                         * UPDATE UI
+                         * ========================================
+                         */
 
-                accountReader.close();
+                        if (dashboardActive) {
 
-                JSONObject accountData =
-                        new JSONObject(
-                                accountResponse.toString()
-                        );
+                            runOnUiThread(
+                                    () -> {
 
-                /*
-                 * ========================================
-                 * LIVE ACCOUNT VALUES
-                 * ========================================
-                 */
+                                        if (
+                                                "ONLINE"
+                                                        .equalsIgnoreCase(
+                                                                engine
+                                                        )
+                                        ) {
 
-                double balanceValue =
-                        accountData.optDouble(
-                                "balance",
-                                0.0
-                        );
+                                            engineStatus.setText(
+                                                    "● ONLINE"
+                                            );
 
-                double equityValue =
-                        accountData.optDouble(
-                                "equity",
-                                0.0
-                        );
+                                        } else {
 
-                double profitValue =
-                        accountData.optDouble(
-                                "profit",
-                                0.0
-                        );
+                                            engineStatus.setText(
+                                                    "● OFFLINE"
+                                            );
+                                        }
 
-                String balanceText =
-                        String.format(
-                                "$%.2f",
-                                balanceValue
-                        );
+                                        price.setText(
+                                                marketPrice
+                                        );
 
-                String equityText =
-                        String.format(
-                                "$%.2f",
-                                equityValue
-                        );
+                                        trend.setText(
+                                                marketTrend
+                                        );
 
-                String profitText =
-                        String.format(
-                                "$%.2f",
-                                profitValue
-                        );
+                                        signal.setText(
+                                                marketSignal
+                                        );
 
-                /*
-                 * ========================================
-                 * UPDATE UI
-                 * ========================================
-                 */
+                                        confidence.setText(
+                                                aiConfidence
+                                                        + "%"
+                                        );
 
-                runOnUiThread(() -> {
+                                        balance.setText(
+                                                balanceText
+                                        );
 
-                    if (
-                            "ONLINE".equalsIgnoreCase(
-                                    engine
-                            )
-                    ) {
+                                        equity.setText(
+                                                equityText
+                                        );
 
-                        engineStatus.setText(
-                                "● ONLINE"
-                        );
+                                        profit.setText(
+                                                profitText
+                                        );
 
-                    } else {
+                                        if (
+                                                "true"
+                                                        .equalsIgnoreCase(
+                                                                ready
+                                                        )
+                                        ) {
 
-                        engineStatus.setText(
-                                "● OFFLINE"
-                        );
+                                            marketHunter.setText(
+                                                    "● Market Hunter       ONLINE"
+                                            );
+
+                                        } else {
+
+                                            marketHunter.setText(
+                                                    "● Market Hunter       SCANNING"
+                                            );
+                                        }
+
+                                        riskCommander.setText(
+                                                "● Risk Commander      ACTIVE"
+                                        );
+
+                                        brokerStatus.setText(
+                                                "● Broker Connection   "
+                                                        + broker
+                                                        + " "
+                                                        + brokerState
+                                        );
+                                    }
+                            );
+                        }
+
+                    } catch (Exception e) {
+
+                        if (dashboardActive) {
+
+                            runOnUiThread(
+                                    () -> {
+
+                                        engineStatus.setText(
+                                                "● OFFLINE"
+                                        );
+
+                                        marketHunter.setText(
+                                                "● Market Hunter       OFFLINE"
+                                        );
+
+                                        brokerStatus.setText(
+                                                "● Broker Connection   OFFLINE"
+                                        );
+                                    }
+                            );
+                        }
+
+                    } finally {
+
+                        if (
+                                statusConnection != null
+                        ) {
+
+                            statusConnection.disconnect();
+                        }
+
+                        if (
+                                accountConnection != null
+                        ) {
+
+                            accountConnection.disconnect();
+                        }
+
+                        /*
+                         * Allow the next scheduled refresh.
+                         */
+                        requestRunning = false;
                     }
 
-                    price.setText(
-                            marketPrice
-                    );
-
-                    trend.setText(
-                            marketTrend
-                    );
-
-                    signal.setText(
-                            marketSignal
-                    );
-
-                    confidence.setText(
-                            aiConfidence + "%"
-                    );
-
-                    balance.setText(
-                            balanceText
-                    );
-
-                    equity.setText(
-                            equityText
-                    );
-
-                    profit.setText(
-                            profitText
-                    );
-
-                    if (
-                            "true".equalsIgnoreCase(
-                                    ready
-                            )
-                    ) {
-
-                        marketHunter.setText(
-                                "● Market Hunter       ONLINE"
-                        );
-
-                    } else {
-
-                        marketHunter.setText(
-                                "● Market Hunter       SCANNING"
-                        );
-                    }
-
-                    riskCommander.setText(
-                            "● Risk Commander      ACTIVE"
-                    );
-
-                    brokerStatus.setText(
-                            "● Broker Connection   "
-                                    + broker
-                                    + " "
-                                    + brokerState
-                    );
-                });
-
-            } catch (Exception e) {
-
-                runOnUiThread(() -> {
-
-                    engineStatus.setText(
-                            "● OFFLINE"
-                    );
-
-                    marketHunter.setText(
-                            "● Market Hunter       OFFLINE"
-                    );
-
-                    brokerStatus.setText(
-                            "● Broker Connection   OFFLINE"
-                    );
-
-                    /*
-                     * Keep account values visible if
-                     * the temporary request fails.
-                     * They will refresh on the next cycle.
-                     */
-                });
-
-            } finally {
-
-                if (
-                        statusConnection != null
-                ) {
-
-                    statusConnection.disconnect();
                 }
-
-                if (
-                        accountConnection != null
-                ) {
-
-                    accountConnection.disconnect();
-                }
-            }
-
-        }).start();
+        ).start();
     }
 
     @Override
     protected void onDestroy() {
+
+        dashboardActive = false;
 
         handler.removeCallbacks(
                 updater
