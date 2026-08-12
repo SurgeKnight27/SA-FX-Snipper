@@ -1,6 +1,6 @@
 # ============================================
 # Surge-Sniper
-# Market Hunter Scanner v7.0
+# Market Hunter Scanner v7.1
 # LOCAL M15 CANDLE ANALYSIS
 # MT5API LIVE QUOTE ENGINE
 # STRICT SIGNAL GATE
@@ -63,6 +63,10 @@ class MarketHunter:
                 "✅ Market Hunter Loaded."
             )
 
+            # Synchronize any persisted
+            # completed M15 candles.
+            self.update_candle_history()
+
             return True
 
         print(
@@ -102,12 +106,24 @@ class MarketHunter:
     ):
 
         if price is None:
-
             return
 
-        self.price = float(
-            price
-        )
+        try:
+
+            self.price = float(
+                price
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            print(
+                "⚠️ Invalid Market Hunter price."
+            )
+
+            return
 
         self.price_history.append(
             self.price
@@ -130,17 +146,17 @@ class MarketHunter:
 
     def update_candle_history(self):
 
-        candles = self.data_stream.get_candles()
+        candles = (
+            self.data_stream.get_candles()
+        )
 
         if candles is None:
-
             return []
 
         if not isinstance(
             candles,
             list
         ):
-
             return []
 
         self.candle_history = list(
@@ -155,16 +171,44 @@ class MarketHunter:
 
     def update_from_broker(self):
 
-        price = self.data_stream.get_live_price()
+        # Get the latest live quote through
+        # the existing DataStream connection.
+        price = (
+            self.data_stream.get_live_price()
+        )
 
         if price is None:
-
             return None
 
+        # Keep MarketHunter's raw live price
+        # history for diagnostics/dashboard use.
         self.update_price(
             price
         )
 
+        # IMPORTANT:
+        # Feed the live price into DataStream.
+        #
+        # DataStream.update_price() creates/
+        # updates the local M15 candle using
+        # the phone's real UTC timestamp when
+        # no broker timestamp is supplied.
+        candle_updated = (
+            self.data_stream.update_price(
+                price
+            )
+        )
+
+        if not candle_updated:
+
+            print(
+                "⚠️ DataStream M15 candle "
+                "was not updated."
+            )
+
+        # Refresh MarketHunter's completed
+        # M15 candle history after the price
+        # has been processed.
         self.update_candle_history()
 
         return price
@@ -205,7 +249,6 @@ class MarketHunter:
                 candle,
                 dict
             ):
-
                 continue
 
             close = candle.get(
@@ -213,7 +256,6 @@ class MarketHunter:
             )
 
             if close is None:
-
                 continue
 
             try:
@@ -265,36 +307,27 @@ class MarketHunter:
             )
 
             return {
-
                 "signal": "HOLD",
-
                 "confidence": 0,
-
                 "trend": "WAITING",
-
                 "price": self.price,
-
                 "rsi": None,
-
                 "ema_fast": None,
-
                 "ema_slow": None,
-
                 "ready": False,
-
                 "samples": candle_count,
-
                 "reason":
                     "Insufficient completed "
                     "M15 candles."
-
             }
 
         # ====================================
         # CANDLE CLOSE DATA
         # ====================================
 
-        closes = self.get_candle_closes()
+        closes = (
+            self.get_candle_closes()
+        )
 
         if len(closes) < self.minimum_candles:
 
@@ -304,29 +337,18 @@ class MarketHunter:
             )
 
             return {
-
                 "signal": "HOLD",
-
                 "confidence": 0,
-
                 "trend": "WAITING",
-
                 "price": self.price,
-
                 "rsi": None,
-
                 "ema_fast": None,
-
                 "ema_slow": None,
-
                 "ready": False,
-
                 "samples": len(closes),
-
                 "reason":
                     "Insufficient valid "
                     "M15 candle closes."
-
             }
 
         # ====================================
@@ -376,8 +398,7 @@ class MarketHunter:
         ):
 
             ema_gap = abs(
-                ema_fast
-                - ema_slow
+                ema_fast - ema_slow
             )
 
             # Require meaningful separation.
@@ -698,7 +719,6 @@ class MarketHunter:
         # authority.
 
         signal = strict_signal
-
         reason = strict_reason
 
         # ====================================
@@ -767,27 +787,16 @@ class MarketHunter:
         # ====================================
 
         return {
-
             "signal": signal,
-
             "confidence": confidence,
-
             "trend": trend,
-
             "price": self.price,
-
             "rsi": rsi,
-
             "ema_fast": ema_fast,
-
             "ema_slow": ema_slow,
-
             "ready": True,
-
             "samples": candle_count,
-
             "reason": reason
-
         }
 
     # ========================================
@@ -797,7 +806,6 @@ class MarketHunter:
     def status(self):
 
         return {
-
             "symbol":
                 self.symbol,
 
@@ -819,5 +827,4 @@ class MarketHunter:
 
             "broker":
                 self.data_stream.status()
-
         }

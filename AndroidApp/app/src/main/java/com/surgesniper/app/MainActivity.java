@@ -26,8 +26,28 @@ public class MainActivity extends Activity {
 
     private final Handler handler = new Handler();
 
+    /*
+     * ========================================
+     * LOCAL FLASK DASHBOARD
+     * ========================================
+     *
+     * Flask is running in Termux on the same
+     * Android device.
+     *
+     * 127.0.0.1:5000 has already been verified
+     * from Termux with /api/status.
+     */
+    private static final String BASE_URL =
+            "http://127.0.0.1:5000";
+
     private static final String API_URL =
-            "http://10.22.97.20:5000/api/status";
+            BASE_URL + "/api/status";
+
+    /*
+     * ========================================
+     * CONTINUOUS SCANNER
+     * ========================================
+     */
 
     private final Runnable scanner = new Runnable() {
 
@@ -40,59 +60,111 @@ public class MainActivity extends Activity {
 
             fetchMarketData();
 
-            handler.postDelayed(this, 2000);
+            handler.postDelayed(
+                    this,
+                    2000
+            );
         }
     };
 
+    /*
+     * ========================================
+     * ACTIVITY START
+     * ========================================
+     */
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        setContentView(
+                R.layout.activity_main
+        );
 
         statusText =
-                findViewById(R.id.statusText);
+                findViewById(
+                        R.id.statusText
+                );
 
         priceText =
-                findViewById(R.id.priceText);
+                findViewById(
+                        R.id.priceText
+                );
 
         trendText =
-                findViewById(R.id.trendText);
+                findViewById(
+                        R.id.trendText
+                );
 
         signalText =
-                findViewById(R.id.signalText);
+                findViewById(
+                        R.id.signalText
+                );
 
         confidenceText =
-                findViewById(R.id.confidenceText);
+                findViewById(
+                        R.id.confidenceText
+                );
 
         Button startEngineButton =
-                findViewById(R.id.startEngineButton);
+                findViewById(
+                        R.id.startEngineButton
+                );
 
         Button stopEngineButton =
-                findViewById(R.id.stopEngineButton);
+                findViewById(
+                        R.id.stopEngineButton
+                );
 
         Button scanMarketButton =
-                findViewById(R.id.scanMarketButton);
+                findViewById(
+                        R.id.scanMarketButton
+                );
 
         Button dashboardButton =
-                findViewById(R.id.dashboardButton);
+                findViewById(
+                        R.id.dashboardButton
+                );
 
         Button settingsButton =
-                findViewById(R.id.settingsButton);
+                findViewById(
+                        R.id.settingsButton
+                );
 
+        /*
+         * ========================================
+         * INITIAL STATE
+         * ========================================
+         */
 
-        statusText.setText("🔴 ENGINE : OFFLINE");
+        statusText.setText(
+                "🔴 ENGINE : OFFLINE"
+        );
 
-        priceText.setText("Price : --");
-        trendText.setText("Trend : --");
-        signalText.setText("Signal : --");
-        confidenceText.setText("Confidence : --");
+        priceText.setText(
+                "Price : --"
+        );
 
+        trendText.setText(
+                "Trend : --"
+        );
 
-        // =========================================
-        // START ENGINE
-        // =========================================
+        signalText.setText(
+                "Signal : --"
+        );
+
+        confidenceText.setText(
+                "Confidence : --"
+        );
+
+        /*
+         * ========================================
+         * START ENGINE
+         * ========================================
+         */
 
         startEngineButton.setOnClickListener(v -> {
 
@@ -119,21 +191,31 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_SHORT
             ).show();
 
-            // Start continuous scanning
-            handler.removeCallbacks(scanner);
-            handler.post(scanner);
+            /*
+             * Start continuous market polling.
+             */
+            handler.removeCallbacks(
+                    scanner
+            );
+
+            handler.post(
+                    scanner
+            );
         });
 
-
-        // =========================================
-        // STOP ENGINE
-        // =========================================
+        /*
+         * ========================================
+         * STOP ENGINE
+         * ========================================
+         */
 
         stopEngineButton.setOnClickListener(v -> {
 
             engineRunning = false;
 
-            handler.removeCallbacks(scanner);
+            handler.removeCallbacks(
+                    scanner
+            );
 
             statusText.setText(
                     "🔴 ENGINE : OFFLINE"
@@ -146,10 +228,11 @@ public class MainActivity extends Activity {
             ).show();
         });
 
-
-        // =========================================
-        // SCAN MARKET
-        // =========================================
+        /*
+         * ========================================
+         * SCAN MARKET
+         * ========================================
+         */
 
         scanMarketButton.setOnClickListener(v -> {
 
@@ -180,18 +263,29 @@ public class MainActivity extends Activity {
                     "Confidence : CALCULATING..."
             );
 
-            // Immediate scan
+            /*
+             * Immediate market request.
+             */
             fetchMarketData();
 
-            // Keep scanner alive
-            handler.removeCallbacks(scanner);
-            handler.postDelayed(scanner, 2000);
+            /*
+             * Keep continuous scanner alive.
+             */
+            handler.removeCallbacks(
+                    scanner
+            );
+
+            handler.postDelayed(
+                    scanner,
+                    2000
+            );
         });
 
-
-        // =========================================
-        // DASHBOARD
-        // =========================================
+        /*
+         * ========================================
+         * DASHBOARD
+         * ========================================
+         */
 
         dashboardButton.setOnClickListener(v -> {
 
@@ -214,10 +308,11 @@ public class MainActivity extends Activity {
             }
         });
 
-
-        // =========================================
-        // SETTINGS
-        // =========================================
+        /*
+         * ========================================
+         * SETTINGS
+         * ========================================
+         */
 
         settingsButton.setOnClickListener(v -> {
 
@@ -229,10 +324,11 @@ public class MainActivity extends Activity {
         });
     }
 
-
-    // ============================================
-    // LIVE MARKET DATA
-    // ============================================
+    /*
+     * ========================================
+     * LIVE MARKET DATA
+     * ========================================
+     */
 
     private void fetchMarketData() {
 
@@ -249,11 +345,17 @@ public class MainActivity extends Activity {
                         (HttpURLConnection)
                                 url.openConnection();
 
-                connection.setRequestMethod("GET");
+                connection.setRequestMethod(
+                        "GET"
+                );
 
-                connection.setConnectTimeout(5000);
+                connection.setConnectTimeout(
+                        5000
+                );
 
-                connection.setReadTimeout(5000);
+                connection.setReadTimeout(
+                        5000
+                );
 
                 int responseCode =
                         connection.getResponseCode();
@@ -261,14 +363,16 @@ public class MainActivity extends Activity {
                 if (responseCode != 200) {
 
                     throw new Exception(
-                            "HTTP " + responseCode
+                            "HTTP "
+                                    + responseCode
                     );
                 }
 
                 BufferedReader reader =
                         new BufferedReader(
                                 new InputStreamReader(
-                                        connection.getInputStream()
+                                        connection
+                                                .getInputStream()
                                 )
                         );
 
@@ -277,7 +381,10 @@ public class MainActivity extends Activity {
 
                 String line;
 
-                while ((line = reader.readLine()) != null) {
+                while (
+                        (line = reader.readLine())
+                                != null
+                ) {
 
                     response.append(line);
                 }
@@ -333,10 +440,11 @@ public class MainActivity extends Activity {
 
                 runOnUiThread(() -> {
 
-                    // IMPORTANT:
-                    // A failed/temporary backend response
-                    // must NOT automatically stop the engine.
-
+                    /*
+                     * A temporary backend failure must
+                     * not automatically stop the local
+                     * engine state.
+                     */
                     if (engineRunning) {
 
                         statusText.setText(
@@ -345,15 +453,18 @@ public class MainActivity extends Activity {
                     }
 
                     priceText.setText(
-                            "Price : " + price
+                            "Price : "
+                                    + price
                     );
 
                     trendText.setText(
-                            "Trend : " + trend
+                            "Trend : "
+                                    + trend
                     );
 
                     signalText.setText(
-                            "Signal : " + signal
+                            "Signal : "
+                                    + signal
                     );
 
                     confidenceText.setText(
@@ -361,23 +472,24 @@ public class MainActivity extends Activity {
                                     + confidence
                                     + "%"
                     );
-
                 });
 
             } catch (Exception e) {
 
                 runOnUiThread(() -> {
 
-                    // DO NOT set engineRunning=false.
-                    // The scanner will retry automatically.
-
+                    /*
+                     * Do NOT set engineRunning=false.
+                     *
+                     * The scanner will automatically
+                     * retry on its next cycle.
+                     */
                     if (engineRunning) {
 
                         statusText.setText(
                                 "🟡 ENGINE : RETRYING"
                         );
                     }
-
                 });
 
             } finally {
@@ -391,15 +503,18 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-
-    // ============================================
-    // CLEAN SHUTDOWN
-    // ============================================
+    /*
+     * ========================================
+     * CLEAN SHUTDOWN
+     * ========================================
+     */
 
     @Override
     protected void onDestroy() {
 
-        handler.removeCallbacks(scanner);
+        handler.removeCallbacks(
+                scanner
+        );
 
         engineRunning = false;
 

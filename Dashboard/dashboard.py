@@ -1,12 +1,15 @@
 # ============================================
 # Surge-Sniper
-# Dashboard API v10.1
-# CLEAN SINGLE-ROUTE DASHBOARD
-# LIVE MT5API + MARKET HUNTER
+# Dashboard API v10.2
+# PERSISTENT MARKET HUNTER
+# BACKGROUND M15 COLLECTOR
+# LIVE MT5API + LOCAL M15 ENGINE
 # ============================================
 
 import os
 import sys
+import time
+import threading
 
 # ============================================
 # PROJECT ROOT
@@ -46,24 +49,157 @@ hunter.set_market(
 
 hunter_loaded = False
 
+# ============================================
+# THREAD CONTROL
+# ============================================
+
+collector_started = False
+
+hunter_lock = threading.RLock()
+
+COLLECTOR_INTERVAL = 5
+
+
+# ============================================
+# MARKET HUNTER STARTUP
+# ============================================
 
 def ensure_hunter():
+
     global hunter_loaded
 
-    if hunter_loaded:
-        return True
+    with hunter_lock:
 
-    try:
-        hunter_loaded = hunter.load()
-        return hunter_loaded
+        if hunter_loaded:
+            return True
 
-    except Exception as e:
-        print(
-            f"❌ Market Hunter startup error: {e}"
+        try:
+
+            hunter_loaded = hunter.load()
+
+            if hunter_loaded:
+
+                print(
+                    "✅ Market Hunter Loaded "
+                    "and ready for background collection."
+                )
+
+            return hunter_loaded
+
+        except Exception as e:
+
+            print(
+                f"❌ Market Hunter startup error: {e}"
+            )
+
+            hunter_loaded = False
+
+            return False
+
+
+# ============================================
+# BACKGROUND M15 MARKET COLLECTOR
+# ============================================
+
+def market_collector():
+
+    print(
+        "============================================"
+    )
+
+    print(
+        "📡 BACKGROUND M15 MARKET COLLECTOR"
+    )
+
+    print(
+        "============================================"
+    )
+
+    while True:
+
+        try:
+
+            if not ensure_hunter():
+
+                print(
+                    "⚠️ Market Hunter unavailable. "
+                    "Collector retrying..."
+                )
+
+                time.sleep(
+                    COLLECTOR_INTERVAL
+                )
+
+                continue
+
+            with hunter_lock:
+
+                price = (
+                    hunter.update_from_broker()
+                )
+
+                stream_status = (
+                    hunter.data_stream.status()
+                )
+
+                samples = stream_status.get(
+                    "samples",
+                    0
+                )
+
+            if price is not None:
+
+                print(
+                    "📡 Background quote: "
+                    f"{price} | "
+                    f"Completed M15 candles: "
+                    f"{samples}"
+                )
+
+            else:
+
+                print(
+                    "⚠️ Background collector "
+                    "received no live price."
+                )
+
+        except Exception as e:
+
+            print(
+                "❌ Background collector error: "
+                f"{e}"
+            )
+
+        time.sleep(
+            COLLECTOR_INTERVAL
         )
 
-        hunter_loaded = False
-        return False
+
+# ============================================
+# START BACKGROUND COLLECTOR
+# ============================================
+
+def start_market_collector():
+
+    global collector_started
+
+    if collector_started:
+
+        return
+
+    collector_started = True
+
+    thread = threading.Thread(
+        target=market_collector,
+        name="SurgeSniper-M15-Collector",
+        daemon=True
+    )
+
+    thread.start()
+
+    print(
+        "✅ Background M15 collector started."
+    )
 
 
 # ============================================
@@ -75,6 +211,7 @@ def home():
 
     return """
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -85,7 +222,9 @@ def home():
       content="width=device-width,
                initial-scale=1.0">
 
-<title>Surge-Sniper Dashboard</title>
+<title>
+Surge-Sniper Dashboard
+</title>
 
 <style>
 
@@ -94,40 +233,60 @@ def home():
 }
 
 body {
+
     margin: 0;
+
     background: #080c14;
+
     color: #f8fafc;
+
     font-family: Arial, sans-serif;
 }
 
 .header {
+
     padding: 20px;
+
     text-align: center;
+
     border-bottom: 1px solid #263044;
+
     background: #0d111a;
 }
 
 .header img {
+
     width: 80px;
+
     height: 80px;
+
     object-fit: contain;
+
     border-radius: 16px;
+
     margin-bottom: 8px;
 }
 
 .header h1 {
+
     margin: 5px 0;
+
     font-size: 26px;
 }
 
 .header p {
+
     margin: 5px 0;
+
     color: #94a3b8;
 }
 
 .container {
+
     width: 94%;
+
     max-width: 1100px;
+
     margin: 20px auto;
 }
 
@@ -136,7 +295,9 @@ body {
 ========================================= */
 
 .navigation {
+
     display: grid;
+
     grid-template-columns:
         repeat(3, 1fr);
 
@@ -146,6 +307,7 @@ body {
 }
 
 .nav-button {
+
     display: block;
 
     text-decoration: none;
@@ -166,6 +328,7 @@ body {
 }
 
 .nav-button:hover {
+
     background: #20293a;
 }
 
@@ -174,6 +337,7 @@ body {
 ========================================= */
 
 .cards {
+
     display: grid;
 
     grid-template-columns:
@@ -183,6 +347,7 @@ body {
 }
 
 .card {
+
     background: #111722;
 
     border: 1px solid #263044;
@@ -193,6 +358,7 @@ body {
 }
 
 .card-title {
+
     color: #94a3b8;
 
     font-size: 13px;
@@ -201,6 +367,7 @@ body {
 }
 
 .card-value {
+
     font-size: 24px;
 
     font-weight: bold;
@@ -211,10 +378,12 @@ body {
 ========================================= */
 
 .section {
+
     margin-top: 15px;
 }
 
 .row {
+
     display: flex;
 
     justify-content: space-between;
@@ -226,14 +395,17 @@ body {
 }
 
 .label {
+
     color: #94a3b8;
 }
 
 .value {
+
     font-weight: bold;
 }
 
 .signal {
+
     font-size: 28px;
 
     font-weight: bold;
@@ -244,6 +416,7 @@ body {
 }
 
 .footer {
+
     text-align: center;
 
     padding: 25px;
@@ -260,12 +433,15 @@ body {
 @media (max-width: 700px) {
 
     .navigation {
+
         grid-template-columns: 1fr;
     }
 
     .cards {
+
         grid-template-columns: 1fr;
     }
+
 }
 
 </style>
@@ -285,7 +461,9 @@ body {
         alt="Surge-Sniper"
     >
 
-    <h1>🚀 Surge-Sniper</h1>
+    <h1>
+        🚀 Surge-Sniper
+    </h1>
 
     <p>
         MT5API Live Trading Dashboard
@@ -532,6 +710,22 @@ body {
     </div>
 
 
+    <div class="row">
+
+        <span class="label">
+            M15 Candles
+        </span>
+
+        <span
+            class="value"
+            id="samples"
+        >
+            0 / 20
+        </span>
+
+    </div>
+
+
     <div
         class="signal"
         id="signal"
@@ -573,7 +767,7 @@ body {
 
 <div class="footer">
 
-    Surge-Sniper v10.1<br>
+    Surge-Sniper v10.2<br>
 
     MT5API • Market Hunter • M15
 
@@ -616,6 +810,12 @@ async function updateAccount() {
             await fetch(
                 "/api/account"
             );
+
+        if (!response.ok) {
+
+            return;
+
+        }
 
         const data =
             await response.json();
@@ -731,6 +931,14 @@ async function updateStatus() {
 
 
         setValue(
+            "samples",
+            String(
+                data.samples ?? 0
+            ) + " / 20"
+        );
+
+
+        setValue(
             "signal",
             data.signal
         );
@@ -778,6 +986,87 @@ setInterval(
 
 
 # ============================================
+# ACCOUNT API
+# ============================================
+
+@app.route("/api/account")
+def account():
+
+    try:
+
+        if not ensure_hunter():
+
+            return jsonify({
+                "balance": None,
+                "equity": None,
+                "profit": None,
+                "status": "OFFLINE"
+            })
+
+        with hunter_lock:
+
+            account_data = (
+                hunter.data_stream.broker
+                .get_account()
+            )
+
+        if not isinstance(
+            account_data,
+            dict
+        ):
+
+            return jsonify({
+                "balance": None,
+                "equity": None,
+                "profit": None,
+                "status": "UNKNOWN"
+            })
+
+        balance = account_data.get(
+            "balance"
+        )
+
+        equity = account_data.get(
+            "equity"
+        )
+
+        profit = account_data.get(
+            "profit"
+        )
+
+        return jsonify({
+
+            "balance": balance,
+
+            "equity": equity,
+
+            "profit": profit,
+
+            "status": "ONLINE"
+
+        })
+
+    except Exception as e:
+
+        print(
+            "⚠️ Account dashboard error: "
+            f"{e}"
+        )
+
+        return jsonify({
+
+            "balance": None,
+
+            "equity": None,
+
+            "profit": None,
+
+            "status": "ERROR"
+
+        })
+
+
+# ============================================
 # STATUS API
 # ============================================
 
@@ -819,50 +1108,57 @@ def status():
             })
 
 
-        # ====================================
-        # LIVE PRICE
-        # ====================================
+        with hunter_lock:
 
-        price = (
-            hunter.update_from_broker()
-        )
+            # ====================================
+            # MARKET SCAN
+            # ====================================
 
-
-        # ====================================
-        # MARKET SCAN
-        # ====================================
-
-        result = hunter.scan()
+            result = hunter.scan()
 
 
-        # ====================================
-        # DATA STREAM STATUS
-        # ====================================
+            # ====================================
+            # DATA STREAM STATUS
+            # ====================================
 
-        stream_status = (
-            hunter.data_stream.status()
-        )
-
-
-        connected = (
-            stream_status.get("connected")
-            == "ONLINE"
-        )
-
-
-        samples = (
-            stream_status.get(
-                "samples",
-                0
+            stream_status = (
+                hunter.data_stream.status()
             )
-        )
+
+
+            connected = (
+                stream_status.get(
+                    "connected"
+                )
+                == "ONLINE"
+            )
+
+
+            samples = (
+                stream_status.get(
+                    "samples",
+                    0
+                )
+            )
+
+
+            current_price = (
+                stream_status.get(
+                    "price"
+                )
+            )
+
+
+            if current_price is None:
+
+                current_price = hunter.price
 
 
         return jsonify({
 
             "price": (
-                price
-                if price is not None
+                current_price
+                if current_price is not None
                 else "--"
             ),
 
@@ -903,7 +1199,8 @@ def status():
             "feed":
                 (
                     "LIVE"
-                    if price is not None
+                    if current_price
+                    is not None
                     else "OFFLINE"
                 ),
 
@@ -928,13 +1225,12 @@ def status():
 
         })
 
-
     except Exception as e:
 
         print(
-            f"❌ Dashboard status error: {e}"
+            "❌ Status API error: "
+            f"{e}"
         )
-
 
         return jsonify({
 
@@ -944,7 +1240,7 @@ def status():
 
             "timeframe": "M15",
 
-            "trend": "OFFLINE",
+            "trend": "ERROR",
 
             "signal": "HOLD",
 
@@ -952,212 +1248,40 @@ def status():
 
             "broker": "MT5API",
 
-            "broker_status": "ERROR",
+            "broker_status": "UNKNOWN",
 
-            "feed": "OFFLINE",
+            "feed": "UNKNOWN",
 
-            "engine": "OFFLINE",
+            "engine": "UNKNOWN",
 
             "mode": "DEMO",
 
             "samples": 0,
 
-            "ready": False,
-
-            "error": str(e)
-
-        }), 500
-
-
-# ============================================
-# ACCOUNT API
-# ============================================
-
-@app.route("/api/account")
-def account():
-
-    try:
-
-        if not ensure_hunter():
-
-            return jsonify({
-
-                "account_id": "--",
-
-                "label": "--",
-
-                "login": "--",
-
-                "server": "--",
-
-                "broker": "MT5API",
-
-                "status": "OFFLINE",
-
-                "mode": "DEMO",
-
-                "balance": 0.00,
-
-                "equity": 0.00,
-
-                "profit": 0.00
-
-            })
-
-
-        # ====================================
-        # GET ACCOUNT SNAPSHOT
-        # ====================================
-
-        account_data = (
-            hunter
-            .data_stream
-            .broker
-            .get_account()
-        )
-
-
-        if not account_data:
-
-            return jsonify({
-
-                "account_id": "--",
-
-                "label": "--",
-
-                "login": "--",
-
-                "server": "--",
-
-                "broker": "MT5API",
-
-                "status": "OFFLINE",
-
-                "mode": "DEMO",
-
-                "balance": 0.00,
-
-                "equity": 0.00,
-
-                "profit": 0.00
-
-            })
-
-
-        # ====================================
-        # ACCOUNT RESPONSE
-        # ====================================
-
-        return jsonify({
-
-            "account_id":
-                account_data.get(
-                    "id",
-                    "--"
-                ),
-
-            "label":
-                account_data.get(
-                    "label",
-                    "--"
-                ),
-
-            "login":
-                account_data.get(
-                    "login",
-                    "--"
-                ),
-
-            "server":
-                account_data.get(
-                    "server",
-                    "--"
-                ),
-
-            "balance":
-                account_data.get(
-                    "balance",
-                    0.00
-                ),
-
-            "equity":
-                account_data.get(
-                    "equity",
-                    0.00
-                ),
-
-            "profit":
-                account_data.get(
-                    "profit",
-                    0.00
-                ),
-
-            "mode":
-                account_data.get(
-                    "mode",
-                    "trade"
-                ),
-
-            "broker":
-                "MT5API",
-
-            "status":
-                (
-                    "ONLINE"
-                    if
-                    hunter
-                    .data_stream
-                    .broker
-                    .connected
-                    else "OFFLINE"
-                )
+            "ready": False
 
         })
 
 
-    except Exception as e:
+# ============================================
+# STARTUP
+# ============================================
 
-        return jsonify({
-
-            "account_id": "--",
-
-            "label": "--",
-
-            "login": "--",
-
-            "server": "--",
-
-            "broker": "MT5API",
-
-            "status": "ERROR",
-
-            "mode": "DEMO",
-
-            "balance": 0.00,
-
-            "equity": 0.00,
-
-            "profit": 0.00,
-
-            "error": str(e)
-
-        }), 500
+start_market_collector()
 
 
 # ============================================
-# START DASHBOARD
+# MAIN
 # ============================================
 
 if __name__ == "__main__":
-
-    print("")
 
     print(
         "============================================"
     )
 
     print(
-        "🚀 SURGE-SNIPER DASHBOARD v10.1"
+        "🚀 SURGE-SNIPER DASHBOARD v10.2"
     )
 
     print(
@@ -1189,6 +1313,10 @@ if __name__ == "__main__":
     )
 
     print(
+        "📡 Collector: BACKGROUND"
+    )
+
+    print(
         "============================================"
     )
 
@@ -1200,8 +1328,6 @@ if __name__ == "__main__":
     print(
         "============================================"
     )
-
-    print("")
 
     app.run(
         host="0.0.0.0",
