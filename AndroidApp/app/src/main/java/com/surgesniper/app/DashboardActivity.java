@@ -40,7 +40,7 @@ public class DashboardActivity extends AppCompatActivity {
      * device through Termux.
      */
     private static final String BASE_URL =
-            "http://127.0.0.1:5000";
+            "http://100.65.17.204:5000";
 
     private static final String STATUS_URL =
             BASE_URL + "/api/status";

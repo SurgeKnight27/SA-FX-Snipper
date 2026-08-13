@@ -1,187 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#030609"
-    android:fillViewport="true">
+    android:background="#050505">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
-
-        <!-- ======================================== -->
-        <!-- COMMAND HEADER -->
-        <!-- ======================================== -->
+        android:padding="18dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="🐂        🌐        🐻"
-            android:textColor="#FFFFFF"
-            android:textSize="34sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center"
             android:text="SURGE-SNIPER"
             android:textColor="#00FF9D"
-            android:textSize="28sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:letterSpacing="0.12"
-            android:text="AI TRADING COCKPIT"
-            android:textColor="#6F8498"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <!-- ======================================== -->
-        <!-- ENGINE STATUS -->
-        <!-- ======================================== -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:layout_marginTop="18dp"
-            android:background="#09141D"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="10dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SYSTEM ENGINE"
-                android:textColor="#6F8498"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/dashboardEngineStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="● CONNECTING"
-                android:textColor="#00FF9D"
-                android:textSize="19sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- ======================================== -->
-        <!-- LIVE MARKET -->
-        <!-- ======================================== -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="LIVE MARKET"
-            android:textColor="#8EA3B7"
+            android:paddingTop="4dp"
+            android:text="COMMAND DASHBOARD"
+            android:textColor="#617589"
             android:textSize="12sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="170dp"
-            android:layout_marginTop="8dp"
-            android:background="#09141D"
+            android:layout_height="90dp"
+            android:layout_marginTop="18dp"
+            android:background="#0B121B"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BTCUSDm"
-                android:textColor="#6F8498"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:text="ENGINE STATUS"
+                android:textColor="#617589"
+                android:textSize="11sp" />
 
             <TextView
-                android:id="@+id/dashboardPrice"
+                android:id="@+id/dashboardEngineStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="--"
-                android:textColor="#FFFFFF"
-                android:textSize="31sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/dashboardSignal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="--"
+                android:paddingTop="6dp"
+                android:text="● ONLINE"
                 android:textColor="#00FF9D"
                 android:textSize="21sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/dashboardTrend"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="--"
-                android:textColor="#B7C6D4"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
         </LinearLayout>
-
-        <!-- ======================================== -->
-        <!-- AI CONFIDENCE -->
-        <!-- ======================================== -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="105dp"
-            android:layout_marginTop="10dp"
-            android:background="#09141D"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="AI CONFIDENCE"
-                android:textColor="#6F8498"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/dashboardConfidence"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="--%"
-                android:textColor="#00FF9D"
-                android:textSize="27sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- ======================================== -->
-        <!-- ACCOUNT -->
-        <!-- ======================================== -->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="ACCOUNT"
+            android:layout_marginTop="18dp"
+            android:text="MARKET OVERVIEW"
             android:textColor="#8EA3B7"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -197,7 +76,136 @@
                 android:layout_height="match_parent"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:background="#09141D"
+                android:background="#0B121B"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PRICE"
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/dashboardPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="7dp"
+                    android:text="--"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="#0B121B"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TREND"
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/dashboardTrend"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="7dp"
+                    android:text="--"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="#0B121B"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SIGNAL"
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/dashboardSignal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="7dp"
+                    android:text="--"
+                    android:textColor="#00FF9D"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="95dp"
+            android:layout_marginTop="8dp"
+            android:background="#0B121B"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI CONFIDENCE"
+                android:textColor="#617589"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/dashboardConfidence"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="7dp"
+                android:text="--%"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="ACCOUNT OVERVIEW"
+            android:textColor="#8EA3B7"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="95dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="#0B121B"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -205,15 +213,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="BALANCE"
-                    android:textColor="#6F8498"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/dashboardBalance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
                     android:text="$0.00"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
@@ -227,7 +233,7 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:background="#09141D"
+                android:background="#0B121B"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -235,15 +241,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="EQUITY"
-                    android:textColor="#6F8498"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/dashboardEquity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
                     android:text="$0.00"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
@@ -256,7 +260,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="4dp"
                 android:layout_weight="1"
-                android:background="#09141D"
+                android:background="#0B121B"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -264,15 +268,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="PROFIT"
-                    android:textColor="#6F8498"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
+                    android:textColor="#617589"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/dashboardProfit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
                     android:text="+$0.00"
                     android:textColor="#00FF9D"
                     android:textSize="15sp"
@@ -282,15 +284,11 @@
 
         </LinearLayout>
 
-        <!-- ======================================== -->
-        <!-- POSITIONS / MARKET / RISK -->
-        <!-- ======================================== -->
-
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="110dp"
-            android:layout_marginTop="10dp"
-            android:background="#09141D"
+            android:layout_height="125dp"
+            android:layout_marginTop="12dp"
+            android:background="#0B121B"
             android:orientation="vertical"
             android:padding="14dp">
 
@@ -299,17 +297,17 @@
                 android:layout_height="wrap_content"
                 android:text="SYSTEM STATUS"
                 android:textColor="#8EA3B7"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/marketHunterStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="9dp"
-                android:text="● Market Hunter       CONNECTING"
+                android:paddingTop="10dp"
+                android:text="● Market Hunter       ONLINE"
                 android:textColor="#00FF9D"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/riskCommanderStatus"
@@ -317,31 +315,17 @@
                 android:layout_height="wrap_content"
                 android:text="● Risk Commander      ACTIVE"
                 android:textColor="#00FF9D"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/brokerStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="● Broker Connection   MT5API CONNECTING"
+                android:text="● Broker Connection   EXNESS"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
-
-        <!-- ======================================== -->
-        <!-- COCKPIT FOOTER -->
-        <!-- ======================================== -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:gravity="center"
-            android:text="LET THE BOT DO ITS THING"
-            android:textColor="#405364"
-            android:textSize="10sp"
-            android:textStyle="bold" />
 
     </LinearLayout>
 

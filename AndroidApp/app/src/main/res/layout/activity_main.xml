@@ -9,57 +9,156 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
         android:padding="20dp">
 
         <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ENGINE : ONLINE"
+            android:text="SURGE-SNIPER"
             android:textColor="#FFFFFF"
-            android:textSize="24sp"
+            android:textSize="30sp"
             android:textStyle="bold"
-            android:layout_marginTop="30dp"/>
+            android:gravity="center"
+            android:layout_marginTop="20dp"/>
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔴 ENGINE : OFFLINE"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="15dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="LIVE MARKET"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="25dp"/>
 
         <TextView
             android:id="@+id/priceText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Price : --"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"/>
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
 
         <TextView
             android:id="@+id/trendText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Trend : --"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"/>
+            android:textSize="20sp"
+            android:layout_marginTop="8dp"/>
 
         <TextView
             android:id="@+id/signalText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Signal : --"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"/>
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
 
         <TextView
             android:id="@+id/confidenceText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Confidence : --"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"/>
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SYSTEM"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="25dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Broker : MT5API"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Feed : LIVE"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mode : DEMO"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Symbol : BTCUSDm"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Timeframe : M15"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Engine : ONLINE"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="M15 Candles : 14"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Analysis : READY"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp"/>
 
         <Button
             android:id="@+id/startEngineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="START ENGINE"
-            android:layout_marginTop="20dp"/>
+            android:layout_marginTop="25dp"/>
 
         <Button
             android:id="@+id/stopEngineButton"

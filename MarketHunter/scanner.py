@@ -29,7 +29,7 @@ class MarketHunter:
 
         # Require enough completed M15 candles
         # before calculating M15 indicators.
-        self.minimum_candles = 20
+        self.minimum_candles = 13
         self.minimum_samples = self.minimum_candles
 
         self.signal_engine = SignalEngine()

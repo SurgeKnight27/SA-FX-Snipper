@@ -14,7 +14,6 @@ class BrokerManager:
     # ========================================
 
     def __init__(self):
-
         self.active_broker = None
         self.active_broker_name = None
 
@@ -42,6 +41,7 @@ class BrokerManager:
             return False
 
         self.active_broker_name = broker_name
+
         self.active_broker = self.brokers[
             broker_name
         ]
@@ -76,7 +76,6 @@ class BrokerManager:
     def disconnect(self):
 
         if self.active_broker:
-
             return self.active_broker.disconnect()
 
         return True
@@ -88,7 +87,6 @@ class BrokerManager:
     def status(self):
 
         if self.active_broker:
-
             return self.active_broker.status()
 
         return "OFFLINE"
@@ -100,7 +98,6 @@ class BrokerManager:
     def get_account(self):
 
         if self.active_broker:
-
             return self.active_broker.get_account()
 
         print(
@@ -158,8 +155,10 @@ class BrokerManager:
                 .get_positions()
             )
 
-        # Position state is UNKNOWN if the broker cannot provide it.
-        # Never convert UNKNOWN into an empty position list.
+        # Position state is UNKNOWN if the broker
+        # cannot provide it.
+        # Never convert UNKNOWN into an empty list.
+
         print(
             "⚠️ Position state UNKNOWN: "
             "broker does not support position retrieval."
@@ -246,3 +245,105 @@ class BrokerManager:
             stop_loss,
             take_profit
         )
+
+    # ========================================
+    # MODIFY POSITION
+    # ========================================
+
+    def modify_position(
+        self,
+        ticket,
+        stop_loss=None,
+        take_profit=None,
+        price=None
+    ):
+
+        if not self.active_broker:
+
+            print(
+                "❌ No broker selected."
+            )
+
+            return None
+
+        if not hasattr(
+            self.active_broker,
+            "modify_position"
+        ):
+
+            print(
+                f"❌ {self.active_broker_name} "
+                "does not support position modification."
+            )
+
+            return None
+
+        return self.active_broker.modify_position(
+            ticket,
+            stop_loss,
+            take_profit,
+            price
+        )
+
+    # ========================================
+    # CLOSE POSITION
+    # ========================================
+
+    def close_position(
+        self,
+        ticket,
+        volume=None
+    ):
+
+        if not self.active_broker:
+
+            print(
+                "❌ No broker selected."
+            )
+
+            return None
+
+        if not hasattr(
+            self.active_broker,
+            "close_position"
+        ):
+
+            print(
+                f"❌ {self.active_broker_name} "
+                "does not support position closing."
+            )
+
+            return None
+
+        return self.active_broker.close_position(
+            ticket,
+            volume
+        )
+
+    # ========================================
+    # CLOSE ALL
+    # ========================================
+
+    def close_all(self):
+
+        if not self.active_broker:
+
+            print(
+                "❌ No broker selected."
+            )
+
+            return None
+
+        if not hasattr(
+            self.active_broker,
+            "close_all"
+        ):
+
+            print(
+                f"❌ {self.active_broker_name} "
+                "does not support close-all."
+            )
+
+            return None
+
+        return self.active_broker.close_all()

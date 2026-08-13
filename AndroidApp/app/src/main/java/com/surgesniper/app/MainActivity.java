@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
      * from Termux with /api/status.
      */
     private static final String BASE_URL =
-            "http://127.0.0.1:5000";
+            "http://100.65.17.204:5000";
 
     private static final String API_URL =
             BASE_URL + "/api/status";

@@ -63,6 +63,9 @@ class MetaApiBroker:
 
     def connect(self):
 
+        # Always begin from a locked/disconnected state.
+        self.connected = False
+
         if not self.api_key:
 
             print(
@@ -114,6 +117,53 @@ class MetaApiBroker:
                 self.accounts[0]
             )
 
+            account_status = str(
+                self.account.get(
+                    "status",
+                    ""
+                )
+            ).strip().lower()
+
+            print(
+                "📡 MT5API account connection state: "
+                f"{account_status or 'unknown'}"
+            )
+
+            # ====================================
+            # CONNECTION STATE GUARD
+            #
+            # HTTP 200 from /accounts only proves
+            # that the API request succeeded.
+            #
+            # It does NOT prove that the MT5
+            # broker account is connected.
+            # ====================================
+
+            connected_states = (
+                "active",
+                "connected",
+                "online"
+            )
+
+            if account_status not in connected_states:
+
+                self.connected = False
+
+                print(
+                    "⚠️ MT5API account is NOT connected."
+                )
+
+                print(
+                    f"Account status: "
+                    f"{self.account.get('status', 'Unknown')}"
+                )
+
+                print(
+                    "🔒 Trading remains locked."
+                )
+
+                return False
+
             self.connected = True
 
             print(
@@ -144,8 +194,20 @@ class MetaApiBroker:
 
         except requests.RequestException as e:
 
+            self.connected = False
+
             print(
                 f"❌ MT5API network error: {e}"
+            )
+
+            return False
+
+        except ValueError as e:
+
+            self.connected = False
+
+            print(
+                f"❌ MT5API returned invalid JSON: {e}"
             )
 
             return False
@@ -534,12 +596,13 @@ class MetaApiBroker:
         return None
 
     # ========================================
-    # GET ORDER
+    # GET ORDER / POSITION-BASED VERIFICATION
     # ========================================
 
     def get_order(
         self,
-        order_id
+        order_id,
+        submitted_order=None
     ):
 
         if (
@@ -549,25 +612,53 @@ class MetaApiBroker:
 
             return None
 
-        if not order_id:
+        if not submitted_order:
+
+            print(
+                "⚠️ Position verification requires "
+                "the submitted order response."
+            )
 
             return None
 
-        account_id = self.account.get(
-            "id"
-        )
+        account_id = self.account.get("id")
 
         if not account_id:
 
             return None
+
+        expected_ticket = submitted_order.get(
+            "ticket"
+        )
+
+        expected_symbol = submitted_order.get(
+            "symbol"
+        )
+
+        expected_side = str(
+            submitted_order.get(
+                "side",
+                ""
+            )
+        ).lower()
+
+        expected_volume = float(
+            submitted_order.get(
+                "volume",
+                0
+            ) or 0
+        )
+
+        expected_client_tag = submitted_order.get(
+            "client_tag"
+        )
 
         try:
 
             response = requests.get(
 
                 f"{self.BASE_URL}/accounts/"
-                f"{account_id}/orders/"
-                f"{order_id}",
+                f"{account_id}/positions",
 
                 headers=self._headers(),
 
@@ -575,24 +666,129 @@ class MetaApiBroker:
             )
 
             print(
-                "📡 MT5API order verification HTTP: "
+                "📡 MT5API position verification HTTP: "
                 f"{response.status_code}"
             )
 
-            if response.status_code == 200:
+            if response.status_code != 200:
 
-                data = response.json()
-
-                return data.get(
-                    "data"
+                print(
+                    "⚠️ Position verification failed."
                 )
 
-            print(
-                "⚠️ Order verification failed."
+                print(
+                    response.text[:1000]
+                )
+
+                return None
+
+            data = response.json().get(
+                "data",
+                []
             )
 
+            if not isinstance(
+                data,
+                list
+            ):
+
+                print(
+                    "⚠️ Position verification returned "
+                    "invalid data."
+                )
+
+                return None
+
+            for position in data:
+
+                position_ticket = position.get(
+                    "ticket"
+                )
+
+                # Strongest match: broker position ticket
+                if (
+                    expected_ticket is not None
+                    and position_ticket == expected_ticket
+                ):
+
+                    print(
+                        "🟢 MATCHED POSITION BY TICKET"
+                    )
+
+                    return {
+                        **submitted_order,
+                        "status": "filled",
+                        "filled_volume": position.get(
+                            "volume",
+                            expected_volume
+                        ),
+                        "position": position
+                    }
+
+                position_symbol = position.get(
+                    "symbol"
+                )
+
+                position_side = str(
+                    position.get(
+                        "side",
+                        ""
+                    )
+                ).lower()
+
+                position_volume = float(
+                    position.get(
+                        "volume",
+                        0
+                    ) or 0
+                )
+
+                position_client_tag = position.get(
+                    "client_tag"
+                )
+
+                same_symbol = (
+                    position_symbol == expected_symbol
+                )
+
+                same_side = (
+                    position_side == expected_side
+                )
+
+                same_volume = (
+                    abs(
+                        position_volume
+                        - expected_volume
+                    ) < 0.0000001
+                )
+
+                same_tag = (
+                    expected_client_tag is None
+                    or position_client_tag
+                    == expected_client_tag
+                )
+
+                if (
+                    same_symbol
+                    and same_side
+                    and same_volume
+                    and same_tag
+                ):
+
+                    print(
+                        "🟢 MATCHED POSITION BY "
+                        "SYMBOL/SIDE/VOLUME/TAG"
+                    )
+
+                    return {
+                        **submitted_order,
+                        "status": "filled",
+                        "filled_volume": position_volume,
+                        "position": position
+                    }
+
             print(
-                response.text[:1000]
+                "🟡 No matching open position found."
             )
 
             return None
@@ -600,7 +796,7 @@ class MetaApiBroker:
         except requests.RequestException as e:
 
             print(
-                "❌ MT5API order verification "
+                "❌ MT5API position verification "
                 f"network error: {e}"
             )
 
@@ -613,6 +809,7 @@ class MetaApiBroker:
     def verify_order(
         self,
         order_id,
+        submitted_order=None,
         attempts=3,
         delay=2
     ):
@@ -627,7 +824,8 @@ class MetaApiBroker:
             return None
 
         print(
-            "\n🔎 VERIFYING MT5API ORDER"
+            "\n🔎 VERIFYING MT5API ORDER "
+            "THROUGH POSITIONS"
         )
 
         for attempt in range(
@@ -641,7 +839,8 @@ class MetaApiBroker:
             )
 
             order = self.get_order(
-                order_id
+                order_id,
+                submitted_order
             )
 
             if order:
@@ -671,12 +870,8 @@ class MetaApiBroker:
                 )
 
                 if (
-                    status in (
-                        "filled",
-                        "open"
-                    )
-                    and
-                    filled_volume > 0
+                    status == "filled"
+                    and filled_volume > 0
                 ):
 
                     print(
@@ -685,25 +880,12 @@ class MetaApiBroker:
 
                     return order
 
-                if status in (
-                    "cancelled",
-                    "canceled",
-                    "rejected",
-                    "failed",
-                    "expired"
-                ):
-
-                    print(
-                        "🔴 ORDER TERMINAL FAILURE"
-                    )
-
-                    return order
+            if attempt < attempts:
 
                 print(
-                    "🟡 Order not filled yet."
+                    "🟡 Position not visible yet; "
+                    "waiting before retry."
                 )
-
-            if attempt < attempts:
 
                 time.sleep(
                     delay
@@ -713,7 +895,353 @@ class MetaApiBroker:
             "⚠️ ORDER FILL NOT CONFIRMED."
         )
 
-        return order if 'order' in locals() else None
+        return None
+
+    # ========================================
+    # MODIFY POSITION
+    # ========================================
+
+    def modify_position(
+        self,
+        ticket,
+        stop_loss=None,
+        take_profit=None,
+        price=None
+    ):
+
+        if (
+            not self.connected
+            or not self.account
+        ):
+
+            print(
+                "⚠️ Cannot modify position: "
+                "MT5API is not connected."
+            )
+
+            return None
+
+        if not ticket:
+
+            print(
+                "⚠️ Cannot modify position: "
+                "missing ticket."
+            )
+
+            return None
+
+        account_id = self.account.get(
+            "id"
+        )
+
+        if not account_id:
+
+            print(
+                "⚠️ Cannot modify position: "
+                "missing account ID."
+            )
+
+            return None
+
+        payload = {}
+
+        if stop_loss is not None:
+
+            payload[
+                "stop_loss"
+            ] = float(
+                stop_loss
+            )
+
+        if take_profit is not None:
+
+            payload[
+                "take_profit"
+            ] = float(
+                take_profit
+            )
+
+        if price is not None:
+
+            payload[
+                "price"
+            ] = float(
+                price
+            )
+
+        if not payload:
+
+            print(
+                "⚠️ No modification values supplied."
+            )
+
+            return None
+
+        url = (
+            f"{self.BASE_URL}/accounts/"
+            f"{account_id}/orders/{ticket}"
+        )
+
+        try:
+
+            print(
+                "📡 MT5API MODIFY PATCH:",
+                url
+            )
+
+            response = requests.patch(
+
+                url,
+
+                headers=self._headers(),
+
+                json=payload,
+
+                timeout=20
+            )
+
+            print(
+                "MT5API modify HTTP:",
+                response.status_code
+            )
+
+            if response.status_code != 200:
+
+                print(
+                    "❌ Position modification failed."
+                )
+
+                print(
+                    response.text[:3000]
+                )
+
+                return None
+
+            return response.json()
+
+        except requests.RequestException as e:
+
+            print(
+                "❌ MT5API modify error:",
+                e
+            )
+
+            return None
+
+        except ValueError:
+
+            print(
+                "❌ MT5API modify returned "
+                "invalid JSON."
+            )
+
+            return None
+
+    # ========================================
+    # CLOSE POSITION
+    # ========================================
+
+    def close_position(
+        self,
+        ticket,
+        volume=None
+    ):
+
+        if (
+            not self.connected
+            or not self.account
+        ):
+
+            print(
+                "⚠️ Cannot close position: "
+                "MT5API is not connected."
+            )
+
+            return None
+
+        if not ticket:
+
+            print(
+                "⚠️ Cannot close position: "
+                "missing ticket."
+            )
+
+            return None
+
+        account_id = self.account.get(
+            "id"
+        )
+
+        if not account_id:
+
+            print(
+                "⚠️ Cannot close position: "
+                "missing account ID."
+            )
+
+            return None
+
+        payload = {}
+
+        if volume is not None:
+
+            payload[
+                "volume"
+            ] = float(
+                volume
+            )
+
+        url = (
+            f"{self.BASE_URL}/accounts/"
+            f"{account_id}/positions/"
+            f"{ticket}/close"
+        )
+
+        try:
+
+            print(
+                "📡 MT5API CLOSE POST:",
+                url
+            )
+
+            response = requests.post(
+
+                url,
+
+                headers=self._headers(),
+
+                json=payload,
+
+                timeout=20
+            )
+
+            print(
+                "MT5API close HTTP:",
+                response.status_code
+            )
+
+            if response.status_code != 200:
+
+                print(
+                    "❌ Position close failed."
+                )
+
+                print(
+                    response.text[:3000]
+                )
+
+                return None
+
+            return response.json()
+
+        except requests.RequestException as e:
+
+            print(
+                "❌ MT5API close error:",
+                e
+            )
+
+            return None
+
+        except ValueError:
+
+            print(
+                "❌ MT5API close returned "
+                "invalid JSON."
+            )
+
+            return None
+
+    # ========================================
+    # CLOSE ALL
+    # ========================================
+
+    def close_all(self):
+
+        if (
+            not self.connected
+            or not self.account
+        ):
+
+            print(
+                "⚠️ Cannot close all: "
+                "MT5API is not connected."
+            )
+
+            return None
+
+        account_id = self.account.get(
+            "id"
+        )
+
+        if not account_id:
+
+            print(
+                "⚠️ Cannot close all: "
+                "missing account ID."
+            )
+
+            return None
+
+        url = (
+            f"{self.BASE_URL}/accounts/"
+            f"{account_id}/positions/close-all"
+        )
+
+        try:
+
+            print(
+                "📡 MT5API CLOSE-ALL POST:",
+                url
+            )
+
+            response = requests.post(
+
+                url,
+
+                headers=self._headers(),
+
+                json={},
+
+                timeout=20
+            )
+
+            print(
+                "MT5API close-all HTTP:",
+                response.status_code
+            )
+
+            if response.status_code != 200:
+
+                print(
+                    "❌ Close-all failed."
+                )
+
+                print(
+                    response.text[:3000]
+                )
+
+                return None
+
+            return response.json()
+
+        except requests.RequestException as e:
+
+            print(
+                "❌ MT5API close-all error:",
+                e
+            )
+
+            return None
+
+        except ValueError:
+
+            print(
+                "❌ MT5API close-all returned "
+                "invalid JSON."
+            )
+
+            return None
 
     # ========================================
     # EXECUTE TRADE
@@ -1002,7 +1530,8 @@ class MetaApiBroker:
             if order_id:
 
                 verified = self.verify_order(
-                    order_id
+                    order_id,
+                    order
                 )
 
                 if verified:
